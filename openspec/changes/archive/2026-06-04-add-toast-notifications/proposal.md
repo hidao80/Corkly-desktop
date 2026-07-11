@@ -1,6 +1,6 @@
 ## Why
 
-Cork currently has no global notification system. Errors are shown inline via `ErrorBanner` (used only in forms), and there is no way to surface transient success/info/error feedback to the user after actions like task creation, reordering, or settings changes. Adding `sonner` provides a lightweight, accessible toast system that improves user feedback without introducing heavy dependencies.
+Corkly currently has no global notification system. Errors are shown inline via `ErrorBanner` (used only in forms), and there is no way to surface transient success/info/error feedback to the user after actions like task creation, reordering, or settings changes. Adding `sonner` provides a lightweight, accessible toast system that improves user feedback without introducing heavy dependencies.
 
 ## What Changes
 
@@ -8,7 +8,7 @@ Cork currently has no global notification system. Errors are shown inline via `E
 - Add `Toaster` (sonner's outlet component) to the app root in `App.tsx`
 - Initially, show toasts only when a task is created (success and error)
 - Use `sonner.toast()` (or `toast.success()`, `toast.error()`, etc.) at the page level (consistent with the existing side-effect boundary pattern)
-- Configure sonner styling to match Cork's dark theme tokens (`cork-*` colors)
+- Configure sonner styling to match Corkly's dark theme tokens (`cork-*` colors)
 
 ## Capabilities
 

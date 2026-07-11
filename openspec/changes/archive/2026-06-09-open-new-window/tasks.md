@@ -27,7 +27,7 @@
 ## 4. Rust: メニュー変更
 
 - [x] 4.1 `src-tauri/src/menu.rs` に `File` サブメニューを追加し、その配下に `MenuItemBuilder::with_id("new_window", "New Window").accelerator("CmdOrCtrl+Shift+N")` の `new_window_item` を配置
-- [x] 4.2 `MenuBuilder` の `.items(&[&app_menu, &edit_menu, &window_menu])` を `.items(&[&app_menu, &file_menu, &edit_menu, &window_menu])` に拡張 (File は Cork メニューの直後、Edit の前)
+- [x] 4.2 `MenuBuilder` の `.items(&[&app_menu, &edit_menu, &window_menu])` を `.items(&[&app_menu, &file_menu, &edit_menu, &window_menu])` に拡張 (File は Corkly メニューの直後、Edit の前)
 - [x] 4.3 `app.on_menu_event` の `match` を `"new_window"` 分岐対応に拡張: `let _ = crate::workspace::open_new_window_impl(app);` を直接呼ぶ (task 3.3 で定義した内部関数。エラーは無視せず `eprintln!` でログ出力)
 - [x] 4.4 `app.on_menu_event` の `"settings"` 分岐を変更: `app.emit("menu:open-settings", ())` (全ウィンドウ broadcast) → `app.get_focused_window()` を取得し、取れた場合は `window.emit("menu:open-settings", ())` で focus 中のウィンドウにだけ emit。取れない場合は何もしない (注釈コメントで「実害なし: Settings が開かないだけ」と書く)
 
@@ -118,9 +118,9 @@
   - [x] 13.6.8 `Cmd+,` Settings がフォーカス中のウィンドウだけで開くこと
   - [x] 13.6.9 WelcomePage の余白をドラッグするとウィンドウが動くこと
   - [x] 13.6.10 ウィンドウを閉じた後、再度開いてもアプリが落ちないこと (state cleanup 後の再オープンが正常)
-  - [x] 13.6.11 (macOS) すべてのウィンドウを `Cmd+W` で閉じ、続いて Dock の Cork アイコンをクリックすると、新規ウィンドウが起動時と同じ履歴復元挙動で開くこと (Reopen → `webview_windows().is_empty() == true` 分岐)
-  - [x] 13.6.12 (macOS) ウィンドウが見えている状態で Dock の Cork アイコンをクリックしても新規ウィンドウが追加で生成されない (既存ウィンドウがフォアグラウンドに戻るだけ — `has_visible_windows: true` 分岐) こと
+  - [x] 13.6.11 (macOS) すべてのウィンドウを `Cmd+W` で閉じ、続いて Dock の Corkly アイコンをクリックすると、新規ウィンドウが起動時と同じ履歴復元挙動で開くこと (Reopen → `webview_windows().is_empty() == true` 分岐)
+  - [x] 13.6.12 (macOS) ウィンドウが見えている状態で Dock の Corkly アイコンをクリックしても新規ウィンドウが追加で生成されない (既存ウィンドウがフォアグラウンドに戻るだけ — `has_visible_windows: true` 分岐) こと
   - [x] 13.6.13 (macOS) Reopen で開いたウィンドウのラベルが `workspace-<n>` 採番続き番号であり、`main` の再利用ではないことを Tauri デバッグログまたは Devtools の `getCurrent().label` で確認
-  - [x] 13.6.14 (macOS) `Cmd+H` で Cork アプリを完全に隠した状態で Dock の Cork アイコンをクリックすると、隠れていた既存ウィンドウが復帰すること (新ウィンドウが増えていない、既存ウィンドウのワークスペースは元のまま — Reopen → `webview_windows().is_empty() == false` 分岐 / 隠れケース)
-  - [x] 13.6.15 (macOS) `Cmd+M` ですべてのウィンドウを最小化した状態で Dock の Cork アイコンをクリックすると、最小化していたウィンドウが Dock から復帰すること (新ウィンドウが増えていない — Reopen → `webview_windows().is_empty() == false` 分岐 / 最小化ケース)
+  - [x] 13.6.14 (macOS) `Cmd+H` で Corkly アプリを完全に隠した状態で Dock の Corkly アイコンをクリックすると、隠れていた既存ウィンドウが復帰すること (新ウィンドウが増えていない、既存ウィンドウのワークスペースは元のまま — Reopen → `webview_windows().is_empty() == false` 分岐 / 隠れケース)
+  - [x] 13.6.15 (macOS) `Cmd+M` ですべてのウィンドウを最小化した状態で Dock の Corkly アイコンをクリックすると、最小化していたウィンドウが Dock から復帰すること (新ウィンドウが増えていない — Reopen → `webview_windows().is_empty() == false` 分岐 / 最小化ケース)
   - [x] 13.6.16 同一ワークスペースを 2 つのウィンドウで開き、片方でタスクを `Doing` カラムの**中段** (先頭ではない位置) にドラッグ移動した直後、もう片方のウィンドウで watcher → reconcile が走っても、当該タスクが先頭に飛ばされず**ドラッグ先の位置にそのまま留まる**こと (status+order invariant の確認)

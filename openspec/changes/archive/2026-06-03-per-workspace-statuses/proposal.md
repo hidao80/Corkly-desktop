@@ -1,14 +1,14 @@
 ## Why
 
 現在 statuses 設定は OS ごとのアプリデータディレクトリにある `settings.json` 単一ファイルにグローバル保存されている (`src-tauri/src/lib.rs:108-117`, `lib.rs:264-288`)。そのため作業ディレクトリ A・B で同じ status 構成が強制され、プロジェクトごとに違うワークフロー（例: 開発リポジトリは `Backlog/In Progress/Review/Done`、個人タスクは `Todo/Doing/Done`）を使い分けられない。
-作業ディレクトリ単位で statuses を独立管理するため、設定の保存場所そのものを作業ディレクトリ内へ移し、Cork 外で `.cork.json` を直接編集した場合も即時反映するようにする。
+作業ディレクトリ単位で statuses を独立管理するため、設定の保存場所そのものを作業ディレクトリ内へ移し、Corkly 外で `.cork.json` を直接編集した場合も即時反映するようにする。
 
 ## What Changes
 
 - 作業ディレクトリ直下に `.cork.json` というファイルを新設し、そこに statuses を保存する。スキーマは `{ "statuses": [{ "label": string }, ...] }`
 - Tauri コマンド `get_statuses` / `save_statuses` を「現在の `AppState.workspace_dir` 配下の `.cork.json` を読み書きする」実装に置き換える
 - `list_tasks` がデフォルトステータス推定に使うソースも `.cork.json` に変更する
-- `useWorkspace` の `watch()` コールバックを拡張し、`.cork.json` の変更イベントを検知したら `loadStatuses` と `loadTasks` を再実行する（Cork 外からのエディタ編集にもリアルタイム追従）
+- `useWorkspace` の `watch()` コールバックを拡張し、`.cork.json` の変更イベントを検知したら `loadStatuses` と `loadTasks` を再実行する（Corkly 外からのエディタ編集にもリアルタイム追従）
 - 作業ディレクトリ切替時は新ディレクトリの `.cork.json` を読み直す
 - **BREAKING**: グローバル `settings.json` の `statuses` キーは完全に廃止する。`get_statuses` / `save_statuses` はもうそこを参照しない。既存ユーザーの `statuses` 設定は引き継がない（マイグレーション処理を行わない）
 - 作業ディレクトリ未選択時の `get_statuses` / `save_statuses` はエラーを返す（旧仕様では暗黙にグローバル設定を返していた）

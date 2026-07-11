@@ -12,7 +12,7 @@
 
 #### Scenario: `File > New Window` で新規ウィンドウが開く
 
-- **GIVEN** Cork が起動済みでメインウィンドウが 1 枚開いている
+- **GIVEN** Corkly が起動済みでメインウィンドウが 1 枚開いている
 - **WHEN** ユーザーがメニューバーから `File > New Window` をクリックする
 - **THEN** 新しいウィンドウが画面に生成される
 - **AND** 既存のメインウィンドウはそのまま残る
@@ -21,14 +21,14 @@
 
 #### Scenario: アクセラレータ `Cmd+Shift+N` で新規ウィンドウが開く
 
-- **GIVEN** Cork のいずれかのウィンドウがフォーカスを持っている
+- **GIVEN** Corkly のいずれかのウィンドウがフォーカスを持っている
 - **WHEN** ユーザーが `Cmd+Shift+N` (macOS) または `Ctrl+Shift+N` (それ以外の OS) を押下する
 - **THEN** メニューイベント `new_window` が発火する
 - **AND** 新ウィンドウが生成される
 
 #### Scenario: 新ウィンドウのラベルは `workspace-<n>` のユニーク連番
 
-- **GIVEN** Cork が起動してメインウィンドウのラベルは `"main"` である
+- **GIVEN** Corkly が起動してメインウィンドウのラベルは `"main"` である
 - **WHEN** ユーザーが `New Window` を 3 回続けて実行する
 - **THEN** 生成されるウィンドウのラベルはそれぞれ `workspace-1`, `workspace-2`, `workspace-3` であり、互いに重複しない
 - **AND** ラベル採番カウンタはプロセス内で単調増加し、ウィンドウを閉じても以前のラベルを再利用しない
@@ -104,9 +104,9 @@
 
 #### Scenario: 起動時に直前のワークスペースが復元される
 
-- **GIVEN** 前回 Cork 終了時のメインウィンドウは `/path/to/A` を開いており、これは履歴の先頭にある
+- **GIVEN** 前回 Corkly 終了時のメインウィンドウは `/path/to/A` を開いており、これは履歴の先頭にある
 - **AND** `/path/to/A` は現在もディレクトリとして実在する
-- **WHEN** Cork を起動する
+- **WHEN** Corkly を起動する
 - **THEN** メインウィンドウは BoardPage を表示する
 - **AND** ボードのコンテンツは `/path/to/A` 配下のタスクで埋まる
 
@@ -114,14 +114,14 @@
 
 - **GIVEN** 履歴が `[/path/to/missing, /path/to/A]` で、先頭の `/path/to/missing` は既に削除済み
 - **AND** `/path/to/A` は実在する
-- **WHEN** Cork を起動する
+- **WHEN** Corkly を起動する
 - **THEN** メインウィンドウは `/path/to/A` を開く
 - **AND** 履歴の永続データから `/path/to/missing` は削除されない
 
 #### Scenario: 履歴が全部無効 / 空の場合は WelcomePage
 
 - **GIVEN** 履歴が空、または履歴のすべてのパスが `is_dir()` で false を返す
-- **WHEN** Cork を起動する
+- **WHEN** Corkly を起動する
 - **THEN** メインウィンドウは WelcomePage を表示する
 - **AND** ヘッダや BoardPage は描画されない
 
@@ -138,7 +138,7 @@
 
 #### Scenario: フォーカスがどこにもないときは Settings イベントが消える
 
-- **GIVEN** Cork のすべてのウィンドウがバックグラウンドで、フォーカスは他アプリにある
+- **GIVEN** Corkly のすべてのウィンドウがバックグラウンドで、フォーカスは他アプリにある
 - **WHEN** メニューの `Settings` がプログラム的に発火する
 - **THEN** `app.get_focused_window()` は `None` を返す
 - **AND** イベントはどこにも emit されない (実害ゼロ — Settings が開かないだけ)
@@ -156,10 +156,10 @@ macOS で Tauri の `RunEvent::Reopen { has_visible_windows: false, .. }` ハン
 
 #### Scenario: Dock からのリオープンで履歴ワークスペースが復帰する
 
-- **GIVEN** Cork が起動済みで、ユーザーは `/path/to/A` でしばらく作業し、その後すべてのウィンドウを `Cmd+W` で閉じた
-- **AND** Cork プロセスは macOS 規約に従いバックグラウンドで生き続けている
+- **GIVEN** Corkly が起動済みで、ユーザーは `/path/to/A` でしばらく作業し、その後すべてのウィンドウを `Cmd+W` で閉じた
+- **AND** Corkly プロセスは macOS 規約に従いバックグラウンドで生き続けている
 - **AND** `workspace_history` の先頭は `/path/to/A` で、実在する
-- **WHEN** ユーザーが Dock の Cork アイコンをクリックする
+- **WHEN** ユーザーが Dock の Corkly アイコンをクリックする
 - **THEN** `RunEvent::Reopen { has_visible_windows: false, .. }` が発火する
 - **AND** 新規ウィンドウが `workspace-<n>` のラベルで生成される
 - **AND** そのウィンドウは BoardPage で `/path/to/A` を表示する
@@ -168,24 +168,24 @@ macOS で Tauri の `RunEvent::Reopen { has_visible_windows: false, .. }` ハン
 
 - **GIVEN** 履歴が全部無効、または空である
 - **AND** すべてのウィンドウが閉じられている
-- **WHEN** ユーザーが Dock の Cork アイコンをクリックする
+- **WHEN** ユーザーが Dock の Corkly アイコンをクリックする
 - **THEN** 新規ウィンドウが `workspace-<n>` で生成される
 - **AND** そのウィンドウは WelcomePage を表示する (BoardPage ではない)
 
 #### Scenario: ウィンドウが見えている状態の Reopen は無視される
 
-- **GIVEN** Cork のウィンドウが少なくとも 1 枚最小化されていない状態で表示されている
-- **WHEN** ユーザーが Dock の Cork アイコンをクリックする (たとえば他アプリにフォーカスがあった場合のフォアグラウンド復帰)
+- **GIVEN** Corkly のウィンドウが少なくとも 1 枚最小化されていない状態で表示されている
+- **WHEN** ユーザーが Dock の Corkly アイコンをクリックする (たとえば他アプリにフォーカスがあった場合のフォアグラウンド復帰)
 - **THEN** `RunEvent::Reopen` の `has_visible_windows` が `true` で発火する
-- **AND** Cork は新規ウィンドウを生成しない
+- **AND** Corkly は新規ウィンドウを生成しない
 - **AND** macOS 標準の挙動で既存ウィンドウがフォアグラウンドに戻る
 
 #### Scenario: `Cmd+H` でアプリを隠した状態の Dock クリックは既存ウィンドウを再表示する
 
-- **GIVEN** Cork のウィンドウ `main` がワークスペース `/path/to/A` を開いて表示されている
-- **WHEN** ユーザーが `Cmd+H` で Cork アプリを隠す
+- **GIVEN** Corkly のウィンドウ `main` がワークスペース `/path/to/A` を開いて表示されている
+- **WHEN** ユーザーが `Cmd+H` で Corkly アプリを隠す
 - **AND** `RunEvent::Reopen { has_visible_windows: false, .. }` がこの状態で発火する (隠されているウィンドウは "visible" にカウントされない)
-- **AND** ユーザーが Dock の Cork アイコンをクリックする
+- **AND** ユーザーが Dock の Corkly アイコンをクリックする
 - **THEN** `app.webview_windows()` には `main` が依然として存在するため、`is_empty()` は false
 - **AND** 新規ウィンドウは生成されない
 - **AND** 既存の `main` ウィンドウに対して `show()` + `set_focus()` が呼ばれ、再表示される
@@ -194,7 +194,7 @@ macOS で Tauri の `RunEvent::Reopen { has_visible_windows: false, .. }` ハン
 #### Scenario: すべて最小化された状態の Dock クリックは既存ウィンドウを復帰する
 
 - **GIVEN** ウィンドウ `main` と `workspace-1` の両方が表示されており、ユーザーが両方を `Cmd+M` で最小化する
-- **WHEN** `RunEvent::Reopen { has_visible_windows: false, .. }` が発火し、ユーザーが Dock の Cork アイコンをクリックする
+- **WHEN** `RunEvent::Reopen { has_visible_windows: false, .. }` が発火し、ユーザーが Dock の Corkly アイコンをクリックする
 - **THEN** `app.webview_windows()` には両ウィンドウが存在するため、`is_empty()` は false
 - **AND** 新規ウィンドウは生成されない
 - **AND** 両ウィンドウに対して `unminimize()` + `show()` + `set_focus()` が順に呼ばれ、Dock から復帰する
@@ -209,7 +209,7 @@ macOS で Tauri の `RunEvent::Reopen { has_visible_windows: false, .. }` ハン
 
 ### Requirement: 内部書き込みコマンドは status と order を必ず同時に書き込む
 
-Cork の内部書き込みコマンドが frontmatter の `status` を変更する場合、同時に `order` も必ず frontmatter に書き込まなければならない (MUST)。これは複数ウィンドウが同じワークスペースを開いた状態で、ウィンドウ A の Cork-内部のタスク移動が、ウィンドウ B 側の `reconcile_external_status_changes` から「外部エディタによる status のみの編集」として誤判定され、ウィンドウ B が当該タスクを意図しないステータス先頭位置に移動させてしまうのを防ぐための invariant である。
+Corkly の内部書き込みコマンドが frontmatter の `status` を変更する場合、同時に `order` も必ず frontmatter に書き込まなければならない (MUST)。これは複数ウィンドウが同じワークスペースを開いた状態で、ウィンドウ A の Corkly-内部のタスク移動が、ウィンドウ B 側の `reconcile_external_status_changes` から「外部エディタによる status のみの編集」として誤判定され、ウィンドウ B が当該タスクを意図しないステータス先頭位置に移動させてしまうのを防ぐための invariant である。
 
 具体的には:
 
@@ -243,9 +243,9 @@ Cork の内部書き込みコマンドが frontmatter の `status` を変更す�
 
 #### Scenario: 真の外部エディタ編集 (status のみ手動書き換え) は reconcile で修復される
 
-- **GIVEN** 何らかの Cork 以外のテキストエディタで `.md` ファイルの frontmatter を直接編集する
+- **GIVEN** 何らかの Corkly 以外のテキストエディタで `.md` ファイルの frontmatter を直接編集する
 - **AND** 編集者は `status: Todo` を `status: Doing` に書き換えるが `order: 3` は触らない
-- **WHEN** ファイル保存後、Cork ウィンドウの watcher が発火し、`reconcile_external_status_changes` が呼ばれる
+- **WHEN** ファイル保存後、Corkly ウィンドウの watcher が発火し、`reconcile_external_status_changes` が呼ばれる
 - **THEN** `compute_reconciled_orders` は `prev_status=Todo` ≠ `task.status=Doing` かつ `prev_order=Some(3)` == `task.order=Some(3)` (`order_unchanged=true`) と判定する
 - **AND** 当該タスクは `to_move` に入り、新しい `Doing` カラムの先頭にあたる `order` 値で再書き込みされる
 - **AND** これは設計通りの「外部編集を見つけたらカラムの目につく位置に持っていく」挙動である

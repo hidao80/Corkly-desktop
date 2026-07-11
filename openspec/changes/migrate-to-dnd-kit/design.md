@@ -1,6 +1,6 @@
 ## Context
 
-Cork のカンバンボードは現在 `@hello-pangea/dnd` を使用してカードのドラッグ&ドロップを実現している。`@hello-pangea/dnd` は `react-beautiful-dnd` のフォークだが、React 19 / TypeScript 5.8 環境でのメンテナンス継続性に懸念がある。
+Corkly のカンバンボードは現在 `@hello-pangea/dnd` を使用してカードのドラッグ&ドロップを実現している。`@hello-pangea/dnd` は `react-beautiful-dnd` のフォークだが、React 19 / TypeScript 5.8 環境でのメンテナンス継続性に懸念がある。
 
 `@dnd-kit` はメンテナンスが活発で、v0.4.0 が 2026年4月にリリースされている。アーキテクチャは `@dnd-kit/abstract` → `@dnd-kit/dom` → `@dnd-kit/react` の3層構造で、React アダプターは thin wrapper として設計されている。同じ作者（clauderic）がメンテナンスしており、17.2k stars の成熟したプロジェクト。
 
@@ -40,7 +40,7 @@ Cork のカンバンボードは現在 `@hello-pangea/dnd` を使用してカー
 
 ### useDraggable + useDroppable を採用（useSortable は不使用）
 
-`@dnd-kit/react` が提供する3つのフックのうち、`useDraggable` + `useDroppable` の組み合わせを採用する。`useSortable` は intra-column の並び替えを前提とした API であり、Cork は intra-column reorder を非サポートとしているため必要ない。
+`@dnd-kit/react` が提供する3つのフックのうち、`useDraggable` + `useDroppable` の組み合わせを採用する。`useSortable` は intra-column の並び替えを前提とした API であり、Corkly は intra-column reorder を非サポートとしているため必要ない。
 
 | アプローチ                      | 判断                                                       |
 | ------------------------------- | ---------------------------------------------------------- |
@@ -49,7 +49,7 @@ Cork のカンバンボードは現在 `@hello-pangea/dnd` を使用してカー
 
 ### カード全体を drag handle にする（GripHorizontal アイコンは削除）
 
-`@dnd-kit` の `useDraggable` は `handleRef` を指定しない場合、`ref` を割り当てた要素全体が drag handle として動作する。Cork ではカード全体を掴んでドラッグする UX を採用し、GripHorizontal アイコンは削除する。これにより視覚的なノイズが減り、直感的な操作感が得られる。
+`@dnd-kit` の `useDraggable` は `handleRef` を指定しない場合、`ref` を割り当てた要素全体が drag handle として動作する。Corkly ではカード全体を掴んでドラッグする UX を採用し、GripHorizontal アイコンは削除する。これにより視覚的なノイズが減り、直感的な操作感が得られる。
 
 ### DragOverlay は使用しない
 

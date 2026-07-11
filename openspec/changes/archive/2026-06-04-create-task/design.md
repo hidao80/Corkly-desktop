@@ -1,6 +1,6 @@
 ## Context
 
-Cork currently has no way to create tasks from within the app. Users must manually create `.md` files in the workspace directory. The app structure follows atomic design with strict import boundaries, and the Rust backend uses a single `lib.rs` with all commands. The existing security model canonicalizes paths before any write operation.
+Corkly currently has no way to create tasks from within the app. Users must manually create `.md` files in the workspace directory. The app structure follows atomic design with strict import boundaries, and the Rust backend uses a single `lib.rs` with all commands. The existing security model canonicalizes paths before any write operation.
 
 The UI uses a dark theme with indigo accent (`cork-accent: #6366f1`), Inter font, and Tailwind 4. Existing patterns include a `Modal` component for overlays and `Button`/`Input` atoms for forms.
 

@@ -33,14 +33,14 @@
 
 - [x] 4.1 `src-tauri/src/task.rs` の `read_all_tasks` を `pub(crate)` に変更
 - [x] 4.2 `mcp.rs` に `McpTask { title, file_path, status, tags }` を定義 (Serialize + JsonSchema)。さらに MCP 仕様 (`outputSchema` の root は `object` 必須) を満たすため `ListTasksOutput { tasks: Vec<McpTask> }` ラッパも定義
-- [x] 4.3 `CorkMcpServer` を unit struct (`pub struct CorkMcpServer;`) として定義 (Clone, Default)。`AppState` への参照は持たない (workspace は HTTP ヘッダーから抽出するため)。`tool_router` は `#[tool_router]` が生成する associated fn (`Self::tool_router()`) を `#[tool_handler]` 側が直接参照するため、フィールドで保持する必要はない (フィールド方式は dead code になる)
-- [x] 4.4 `#[tool_router] impl CorkMcpServer { #[tool(...)] async fn list_tasks(...) -> Result<Json<ListTasksOutput>, rmcp::ErrorData> }` を実装。ハンドラは `Extension<Workspace>` で middleware が格納した検証済みディレクトリを受け取り、`read_all_tasks(&dir)` 呼び出し → `McpTask` に変換し `ListTasksOutput { tasks }` でラップして返す。ハンドラ自身は workspace 検証を行わない (middleware が前段で済ませている)
-- [x] 4.5 `#[tool_handler] impl ServerHandler for CorkMcpServer { fn get_info(&self) -> ServerInfo { ... } }` を追加。`#[tool_handler]` 属性は `call_tool` / `list_tools` / `get_tool` を `Self::tool_router()` 経由で自動実装する — これを付け忘れると `tools/list` は空配列、`tools/call` は `method_not_found` を返してツール定義が外部から不可視になる致命的な状態に陥る。手動の `get_info` は既存メソッドのため `#[tool_handler]` は上書きしない
+- [x] 4.3 `CorklyMcpServer` を unit struct (`pub struct CorklyMcpServer;`) として定義 (Clone, Default)。`AppState` への参照は持たない (workspace は HTTP ヘッダーから抽出するため)。`tool_router` は `#[tool_router]` が生成する associated fn (`Self::tool_router()`) を `#[tool_handler]` 側が直接参照するため、フィールドで保持する必要はない (フィールド方式は dead code になる)
+- [x] 4.4 `#[tool_router] impl CorklyMcpServer { #[tool(...)] async fn list_tasks(...) -> Result<Json<ListTasksOutput>, rmcp::ErrorData> }` を実装。ハンドラは `Extension<Workspace>` で middleware が格納した検証済みディレクトリを受け取り、`read_all_tasks(&dir)` 呼び出し → `McpTask` に変換し `ListTasksOutput { tasks }` でラップして返す。ハンドラ自身は workspace 検証を行わない (middleware が前段で済ませている)
+- [x] 4.5 `#[tool_handler] impl ServerHandler for CorklyMcpServer { fn get_info(&self) -> ServerInfo { ... } }` を追加。`#[tool_handler]` 属性は `call_tool` / `list_tools` / `get_tool` を `Self::tool_router()` 経由で自動実装する — これを付け忘れると `tools/list` は空配列、`tools/call` は `method_not_found` を返してツール定義が外部から不可視になる致命的な状態に陥る。手動の `get_info` は既存メソッドのため `#[tool_handler]` は上書きしない
 
 ## 5. バックエンド: ミドルウェアと bind
 
 - [x] 5.1 axum middleware `auth_layer(State<Arc<RwLock<String>>>, headers, req, next)` を実装: `Authorization: Bearer <token>` を `RwLock<String>` の値と定数時間比較 (`subtle::ConstantTimeEq` or 同等) し、不一致 / 欠落で 401 + `WWW-Authenticate: Bearer` を返す
-- [x] 5.2 axum middleware `workspace_layer(headers, mut req, next)` を実装: `X-Cork-Workspace` ヘッダー値を取り出し、canonicalize → `is_dir()` 検証 → 成功時 `req.extensions_mut().insert(Workspace(path))`、欠落 / 値が空 / canonicalize 失敗 / ディレクトリでない場合は 400 + 簡潔なエラーメッセージで返す。`Workspace` は `pub struct Workspace(pub PathBuf)` の newtype
+- [x] 5.2 axum middleware `workspace_layer(headers, mut req, next)` を実装: `X-Corkly-Workspace` ヘッダー値を取り出し、canonicalize → `is_dir()` 検証 → 成功時 `req.extensions_mut().insert(Workspace(path))`、欠落 / 値が空 / canonicalize 失敗 / ディレクトリでない場合は 400 + 簡潔なエラーメッセージで返す。`Workspace` は `pub struct Workspace(pub PathBuf)` の newtype
 - [x] 5.3 `start(settings: &McpSettings) -> Result<McpHandle, McpStartError>` を実装。`TcpListener::bind("127.0.0.1:{port}")` → `Arc<RwLock<String>>` を生成 → `StreamableHttpService` を `Router` に mount → `tower::ServiceBuilder::new().layer(auth_layer).layer(workspace_layer)` を `.layer()` で重ねる (リクエスト到達時の実行順は auth → workspace → handler) → `CancellationToken` を作成 → `axum::serve(...).with_graceful_shutdown(token.cancelled())` を `tokio::spawn` → 返す `McpHandle` は `{cancel, join, token, port}` を含む
 - [x] 5.4 bind エラーを enum `McpStartError { PortInUse { port: u16 }, Other(String) }` で分類し、`McpStatus.error` の文字列に変換するヘルパー (`Display`) を実装
 - [x] 5.5 `stop(handle: McpHandle) -> ()` を実装: `handle.cancel.cancel()` → `tokio::time::timeout(1s, handle.join).await` (タイムアウトは無視して return)
@@ -60,7 +60,7 @@
 - [x] 6.6 `src-tauri/src/lib.rs` の `tauri::generate_handler![...]` に 5 コマンドを追加 (`mcp::get_settings`, `mcp::update_settings`, `mcp::generate_token`, `mcp::get_sample_config`, `mcp::get_server_status`)
 - [x] 6.7 `src-tauri/src/lib.rs` の `setup` で `mcp::load_settings` を呼び、`enabled=true` なら `mcp::start` を試みる。`Ok(handle)` → `set_mcp_runtime(Running(handle))`、`Err(McpStartError)` → `set_mcp_runtime(Failed{port, error})` に格納する。**いずれの場合も setup 自体は成功させ、Kanban UI の起動を妨げない**
 - [x] 6.8 `src-tauri/src/lib.rs` の `app.run` ハンドラに `RunEvent::Exit` ケースを追加し、`take_mcp_handle` 経由で `mcp::stop` を呼ぶ (handle が無ければ no-op)
-- [x] 6.9 ユニットテスト: 純粋ヘルパー `build_sample_config` の JSON 構造 (workspace 0 件 / 1 件 / 複数件)、`slug_for_workspace` (空白 → `-`、非 ASCII → `-`、複数 `-` の圧縮、両端 trim、重複 basename の衝突確認は v1 スコープ外として workspace のフルパスを `X-Cork-Workspace` で区別すれば足りる)
+- [x] 6.9 ユニットテスト: 純粋ヘルパー `build_sample_config` の JSON 構造 (workspace 0 件 / 1 件 / 複数件)、`slug_for_workspace` (空白 → `-`、非 ASCII → `-`、複数 `-` の圧縮、両端 trim、重複 basename の衝突確認は v1 スコープ外として workspace のフルパスを `X-Corkly-Workspace` で区別すれば足りる)
 
 ## 7. フロントエンド: API ラッパー
 
@@ -70,7 +70,7 @@
 
 ## 8. フロントエンド: ドメインフック
 
-- [x] 8.1 `src/hooks/useMcpSettings.ts` を新規作成。`get_settings` で初期ロード → state を返す。`updateEnabled(bool)` / `updateToken(string)` / `generateToken()` はいずれも即時保存 (debounce なし、Cork はローカル完結アプリのため)
+- [x] 8.1 `src/hooks/useMcpSettings.ts` を新規作成。`get_settings` で初期ロード → state を返す。`updateEnabled(bool)` / `updateToken(string)` / `generateToken()` はいずれも即時保存 (debounce なし、Corkly はローカル完結アプリのため)
 - [x] 8.2 同フックは `status` / `sampleConfig` も保持する。**ポーリングではなく `tauri-plugin-store` の `store://change` イベント (`mcp` キー) を購読**して全 window 間でリアルタイム同期する (`src/api/mcp.ts::onMcpSettingsChange`)。Settings ダイアログを開いたタイミングで一度 refresh を走らせ、AppState のみで変わる値 (sampleConfig が依存する「現在開いている workspace 一覧」) も反映する
 - [x] 8.3 `src/hooks/AGENTS.md` に `useMcpSettings.ts` の説明を追記
 
@@ -119,7 +119,7 @@
 - [ ] 13.4 `bun run tauri dev` で起動して以下を手動確認:
   - 初回起動時に `settings.json` の `mcp` キーが `enabled=false` で追記され、`workspace_history` 等の既存キーが破壊されていない
   - Settings → MCP Server の Toggle ON でサーバが立ち、`StatusIndicator` が「Running on :8569」になる
-  - `curl -H "Authorization: Bearer <wrong>" -H "X-Cork-Workspace: /path" http://127.0.0.1:8569/mcp` が 401 を返す
+  - `curl -H "Authorization: Bearer <wrong>" -H "X-Corkly-Workspace: /path" http://127.0.0.1:8569/mcp` が 401 を返す
   - `curl` で正しいトークン + 正しい workspace + initialize JSON-RPC を送ると 200 で initialize 応答が返る
   - `tools/list` で `list_tasks` のみが返る
   - `tools/call` で `list_tasks` を呼ぶと `frontmatter.status` のあるファイルだけが返り、`body` と `order` は含まれない
@@ -127,5 +127,5 @@
   - Token を Generate で再生成するとサーバは継続稼働し、旧トークンでの認証は失敗する
   - Toggle OFF で接続が切れる
   - 8569 を他プロセスで占有した状態で Toggle ON すると「Port 8569 in use」と表示される
-  - Cork を `Cmd+Q` で終了するとポートが解放される
+  - Corkly を `Cmd+Q` で終了するとポートが解放される
 - [x] 13.5 Claude Desktop / Claude Code いずれかで `mcp.json` にコピーしたスニペットを貼り、実際に `list_tasks` が呼べることを確認 (Claude Code から `/mcp` で `Reconnected to cork-tasks.` を確認、`list_tasks` 呼び出しで 67 件の `{ "tasks": [...] }` 応答を取得済み)

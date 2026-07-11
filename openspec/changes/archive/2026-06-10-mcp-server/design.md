@@ -2,7 +2,7 @@
 
 ## Context
 
-Cork は Tauri 2 + React 19 で動く macOS 専用デスクトップアプリで、ローカルディレクトリ内の Markdown ファイル (frontmatter に `status` を持つもの) を Kanban として扱う。バックエンドは `src-tauri/` の Rust モジュール群、フロントエンドは `src/` の atomic design React。
+Corkly は Tauri 2 + React 19 で動く macOS 専用デスクトップアプリで、ローカルディレクトリ内の Markdown ファイル (frontmatter に `status` を持つもの) を Kanban として扱う。バックエンドは `src-tauri/` の Rust モジュール群、フロントエンドは `src/` の atomic design React。
 
 MCP (Model Context Protocol) は、LLM クライアント (Claude Desktop, Claude Code, Cursor 等) が外部ツール / リソースに統一的にアクセスするためのプロトコル。stdio と Streamable HTTP の 2 トランスポートが主流で、後者は **常駐サーバ + クライアントが URL で接続** する形式 (旧 SSE トランスポートの後継)。
 
@@ -17,17 +17,17 @@ MCP (Model Context Protocol) は、LLM クライアント (Claude Desktop, Claud
 
 **Goals:**
 
-- MCP クライアントから Cork のタスク一覧を read-only で取得できる土台 (transport, 認証, 設定 UI, ライフサイクル) を構築する。
-- 認証トークンと workspace ヘッダーで「Cork の MCP セッション」と「アクセス対象 workspace」を明示的に紐付ける。
+- MCP クライアントから Corkly のタスク一覧を read-only で取得できる土台 (transport, 認証, 設定 UI, ライフサイクル) を構築する。
+- 認証トークンと workspace ヘッダーで「Corkly の MCP セッション」と「アクセス対象 workspace」を明示的に紐付ける。
 - 設定 UI を完結させ、ユーザーが GUI だけで「有効化 → トークン取得 → `mcp.json` 用スニペットコピー」を完了できる。
-- 同じ Cork プロセスから複数の MCP セッションが同時に開ける (1 プロセス、複数クライアント、各セッション独立)。
+- 同じ Corkly プロセスから複数の MCP セッションが同時に開ける (1 プロセス、複数クライアント、各セッション独立)。
 - 起動 / 停止 / ポート変更 / トークン変更を **graceful** に処理し、稼働中のセッションを安全に終端する。
 
 **Non-Goals:**
 
 - 書き込み系ツール (`create_task`, `update_task`, `delete_task` 等) — v2 以降。
 - 複数 workspace を **1 つの MCP セッション内** で扱う機能。複数 workspace は MCP server エントリを複数登録する運用で対処。
-- リモートアクセス (`0.0.0.0` への bind や TLS) — Cork はローカルアプリで、localhost only に絞ることでセキュリティを担保する。
+- リモートアクセス (`0.0.0.0` への bind や TLS) — Corkly はローカルアプリで、localhost only に絞ることでセキュリティを担保する。
 - OAuth / DCR ベースの認証 — 静的 Bearer トークンで十分。
 - macOS Keychain 統合 — `tauri_plugin_store` の Unix 権限保護で実用上十分。
 - ポート衝突時の自動退避 — 「設定したポートで必ず立つ」予測可能性を優先。
@@ -42,8 +42,8 @@ MCP (Model Context Protocol) は、LLM クライアント (Claude Desktop, Claud
 
 **代替**:
 
-- **stdio**: MCP のデフォルトで Claude Desktop も対応するが、stdio は「クライアントが MCP サーバを子プロセスとして起動」する前提。Cork は常駐 GUI アプリで、外部クライアントから「Tauri プロセスを spawn する」モデルは破綻する。
-- **stdio ブリッジ用の別バイナリ**: stdio 互換のためだけに `cork-mcp-stdio` のような proxy バイナリを別途配布し、起動中の Cork に HTTP で転送する案。配布物が増え、ブリッジ自体のメンテも要するため、現代の MCP クライアント側がほぼ HTTP もサポートしている状況では割に合わない。
+- **stdio**: MCP のデフォルトで Claude Desktop も対応するが、stdio は「クライアントが MCP サーバを子プロセスとして起動」する前提。Corkly は常駐 GUI アプリで、外部クライアントから「Tauri プロセスを spawn する」モデルは破綻する。
+- **stdio ブリッジ用の別バイナリ**: stdio 互換のためだけに `cork-mcp-stdio` のような proxy バイナリを別途配布し、起動中の Corkly に HTTP で転送する案。配布物が増え、ブリッジ自体のメンテも要するため、現代の MCP クライアント側がほぼ HTTP もサポートしている状況では割に合わない。
 
 **理由**: 起動中の常駐プロセスに後付けで接続するという要件と完全一致。`rmcp` の Streamable HTTP server は axum ベースで、`Router` に `mount` する形で実装でき、認証ミドルウェアも axum の `from_fn` 等で前段に挟める。
 
@@ -53,21 +53,21 @@ MCP (Model Context Protocol) は、LLM クライアント (Claude Desktop, Claud
 
 **代替**:
 
-- **認証なし (localhost を信頼)**: 同一マシンで動作する任意のローカルプロセスがタスクを読めてしまう。マルウェアやサンドボックス外のスクリプトが Cork の MCP に talk して `.md` の内容を leak する経路を残す。
-- **OAuth 2.1 / Dynamic Client Registration**: MCP の仕様には載るが、Cork のような単一ユーザー / 単一マシン用途で OAuth フローを回す UX 負荷は過大。
+- **認証なし (localhost を信頼)**: 同一マシンで動作する任意のローカルプロセスがタスクを読めてしまう。マルウェアやサンドボックス外のスクリプトが Corkly の MCP に talk して `.md` の内容を leak する経路を残す。
+- **OAuth 2.1 / Dynamic Client Registration**: MCP の仕様には載るが、Corkly のような単一ユーザー / 単一マシン用途で OAuth フローを回す UX 負荷は過大。
 - **mTLS / クライアント証明書**: ローカルでの鍵管理 UX が破綻。
 
 **理由**: 静的 Bearer は MCP クライアント (Claude Desktop / Code / Cursor) すべてが `mcp.json` の `headers` で素直に書ける形式。CSRNG で 32 文字 base62 は約 190bit エントロピーで brute-force 耐性十分。
 
-### Decision 3: Workspace は `X-Cork-Workspace` ヘッダーで必須指定
+### Decision 3: Workspace は `X-Corkly-Workspace` ヘッダーで必須指定
 
-**選択**: MCP クライアントは `X-Cork-Workspace: <absolute path>` を必ず送る。Cork はリクエスト受信時に canonicalize してディレクトリ存在を確認するのみ。Cork で「開いている」workspace である必要はない。
+**選択**: MCP クライアントは `X-Corkly-Workspace: <absolute path>` を必ず送る。Corkly はリクエスト受信時に canonicalize してディレクトリ存在を確認するのみ。Corkly で「開いている」workspace である必要はない。
 
 **代替**:
 
 - **URL クエリパラメータ (`?workspace=...`)**: 認証ヘッダーをどのみち `headers` で書く以上、workspace もヘッダーで統一する方が一貫性が高い。URL 中に絶対パスを混ぜると見た目も冗長。
 - **tool パラメータで毎回指定**: MCP クライアントが意識する情報が増え、`mcp.json` 設定だけでセッションを完結できなくなる。
-- **「Cork で開いている workspace のみ受け付ける」制約**: GUI 起動なしで管理したいユースケース (CI 的に Claude Code から定期チェックなど) を阻害する。認証トークンが渡った時点でローカルファイルシステムへのアクセス権はあるとみなして良い。
+- **「Corkly で開いている workspace のみ受け付ける」制約**: GUI 起動なしで管理したいユースケース (CI 的に Claude Code から定期チェックなど) を阻害する。認証トークンが渡った時点でローカルファイルシステムへのアクセス権はあるとみなして良い。
 - **省略時に「開いている唯一の workspace」を採用するフォールバック**: 多窓環境で挙動が不安定になる。常に必須にした方が予測可能。
 
 **理由**: 1 MCP セッション = 1 workspace の固定により、`list_tasks` のシグネチャは引数なしで完結する。複数 workspace を扱いたければクライアント側で MCP server エントリを複数登録する。`frontmatter.status` を持つ `.md` のみ返す既存セマンティクスにより、任意ディレクトリ指定でも `~/.ssh` のような場所から有意な情報は引けない。
@@ -126,17 +126,17 @@ MCP (Model Context Protocol) は、LLM クライアント (Claude Desktop, Claud
 - `McpStatus` 型 (`{ running, port?, error? }`)
 - `McpRuntime` 型 (Stopped / Running(McpHandle) / Failed の enum)
 - `McpHandle` 型 (`CancellationToken`, `JoinHandle<()>`, `token: Arc<RwLock<String>>`, `port: u16`)
-- `CorkMcpServer` (`#[derive(Clone)] struct`、`tool_router: ToolRouter<Self>` だけを持つ — `AppState` への参照は不要、workspace は HTTP ヘッダーから抽出するため)
+- `CorklyMcpServer` (`#[derive(Clone)] struct`、`tool_router: ToolRouter<Self>` だけを持つ — `AppState` への参照は不要、workspace は HTTP ヘッダーから抽出するため)
 - `#[tool_router]` impl (`list_tasks` 1 メソッド)
-- `#[tool_handler] impl ServerHandler for CorkMcpServer {}`
+- `#[tool_handler] impl ServerHandler for CorklyMcpServer {}`
 - axum middleware (2 段、いずれも MCP プロトコル処理の前段):
   1. **auth middleware**: `Authorization: Bearer <token>` の検証。失敗で 401 + `WWW-Authenticate: Bearer`。
-  2. **workspace middleware**: `X-Cork-Workspace` ヘッダーを抽出 → canonicalize → ディレクトリ存在チェック。成功時は `Workspace(PathBuf)` を request extensions に格納し、ハンドラから `Extension<Workspace>` で取得。欠落 / 不正で 400 を返す (JSON-RPC エラーではなく素の HTTP エラー)。
+  2. **workspace middleware**: `X-Corkly-Workspace` ヘッダーを抽出 → canonicalize → ディレクトリ存在チェック。成功時は `Workspace(PathBuf)` を request extensions に格納し、ハンドラから `Extension<Workspace>` で取得。欠落 / 不正で 400 を返す (JSON-RPC エラーではなく素の HTTP エラー)。
 - `start(settings: &McpSettings) -> Result<McpHandle, McpStartError>`
 - `stop(handle: McpHandle) -> ()` (cancel + drain join、1 秒タイムアウト)
 - 純粋ヘルパー: `generate_token() -> String`, `build_sample_config(open_workspaces: &[PathBuf], port: u16, token: &str) -> String`, `validate_token(s: &str) -> Result<(), ValidationError>`, `slug_for_workspace(path: &Path) -> String`
 
-**理由**: モジュールが密結合 (state, handler, transport が同じ概念単位) なので 1 ファイルにまとめる方が見通しが良い。`CorkMcpServer` から `AppState` 参照を外したことで、ハンドラはディスク読み取りに集約され、テスト時にも生 Rust 関数として呼びやすい。`AppState` への access が必要な箇所 (`get_sample_config` の open workspace 列挙) は Tauri command 側で `tauri::State` + `app.webview_windows()` から拾う。さらにファイルが増えたら `mcp/` ディレクトリ化を検討。
+**理由**: モジュールが密結合 (state, handler, transport が同じ概念単位) なので 1 ファイルにまとめる方が見通しが良い。`CorklyMcpServer` から `AppState` 参照を外したことで、ハンドラはディスク読み取りに集約され、テスト時にも生 Rust 関数として呼びやすい。`AppState` への access が必要な箇所 (`get_sample_config` の open workspace 列挙) は Tauri command 側で `tauri::State` + `app.webview_windows()` から拾う。さらにファイルが増えたら `mcp/` ディレクトリ化を検討。
 
 ### Decision 7: `task::read_all_tasks` を `pub(crate)` に昇格
 
@@ -186,17 +186,17 @@ struct ListTasksOutput {
 - `molecules/CodeBlock.tsx` — `<pre>` + copy button (右上)。コピー成功/失敗を `toast.success` / `toast.error` でユーザーに伝える (既存の「Copy Path」と同じ UX)。
 - `molecules/StatusIndicator.tsx` — colored dot + label。
 - `organisms/settings/McpServerSection.tsx` — 上記を組み合わせた MCP セクション。Token 入力は `Input` + `IconButton` (Copy) の素朴な組み合わせで足り、専用 molecule (`SecretInput`) は作らない (表示・非表示切替が無く、サンプル JSON で平文表示される以上マスクの意味が薄い)。
-- `hooks/useMcpSettings.ts` — `get_settings` / `update_settings` / `generate_token` / `get_sample_config` / `get_server_status` をまとめたドメインフック。すべての書き込み (enabled / token / Generate) を即時永続化 (debounce なし)。Cork はローカル完結アプリで毎キーストロークの IPC コストは無視できる。
+- `hooks/useMcpSettings.ts` — `get_settings` / `update_settings` / `generate_token` / `get_sample_config` / `get_server_status` をまとめたドメインフック。すべての書き込み (enabled / token / Generate) を即時永続化 (debounce なし)。Corkly はローカル完結アプリで毎キーストロークの IPC コストは無視できる。
 
 **代替**: 全部 `McpServerSection` 内部にインライン実装 — 再利用性が落ち、`AGENTS.md` の atomic ルールに反する。当初は `SecretInput` も別 molecule にしていたが、マスク切替を廃止した結果 Input + Copy ボタンだけになり独立 molecule にする旨味が消えた。
 
-**理由**: Cork のディレクトリ規約 (`src/AGENTS.md` 以下) に沿って素直に分割する。`Toggle` は今後 Cork で他にも使いうる primitive なので atom に置く。
+**理由**: Corkly のディレクトリ規約 (`src/AGENTS.md` 以下) に沿って素直に分割する。`Toggle` は今後 Corkly で他にも使いうる primitive なので atom に置く。
 
 ### Decision 10: 設定 UI からのフィードバック設計
 
 **選択**:
 
-- 書き込みはすべて即時反映: enabled / token / Generate のいずれも入力直後に `update_settings` を発火。debounce は持たない (Cork はローカルアプリで IPC コストが事実上ゼロ、加えて auth token を手入力するユースケース自体ほぼ無い)。同じ方針を既存 `useFilterStore` にも適用済み。
+- 書き込みはすべて即時反映: enabled / token / Generate のいずれも入力直後に `update_settings` を発火。debounce は持たない (Corkly はローカルアプリで IPC コストが事実上ゼロ、加えて auth token を手入力するユースケース自体ほぼ無い)。同じ方針を既存 `useFilterStore` にも適用済み。
 - Toggle OFF 時は Toggle のみを表示 (`StatusIndicator` の `Stopped` は Toggle と二重情報になるため省略)。ON にすると Token / Sample / status badge が段階的に現れる。
 - **ポーリングは持たず、`tauri-plugin-store` の `store://change` イベントを購読**してリアルタイムに UI を更新する (`src/api/mcp.ts::onMcpSettingsChange`)。Rust 側の `store.set()` が呼ばれるたびに `app.emit("store://change", ...)` がブロードキャストされ、全 window が同期する。
 - AppState 経由でのみ変わる値 (sample mcp.json は「現在開いている workspace 一覧」に依存する) は store イベントを発火しないので、Settings ダイアログを開くたびに 1 回だけ `refresh()` を呼び全項目を再取得する。これで他 window で新規 workspace を開いたケースも次回ダイアログ開封時にカバーできる。
@@ -213,13 +213,13 @@ struct ListTasksOutput {
 
 ## Risks / Trade-offs
 
-- **[Risk] ローカルマシン内の他プロセスがトークンを盗む** → `settings.json` は Unix 権限で保護 (`~/Library/Application Support/com.cork.app/`) 。同マシンで他ユーザー権限を取られている時点で他に深刻な穴があるので Cork の責務外。Keychain 統合は将来の検討課題。
+- **[Risk] ローカルマシン内の他プロセスがトークンを盗む** → `settings.json` は Unix 権限で保護 (`~/Library/Application Support/com.cork.app/`) 。同マシンで他ユーザー権限を取られている時点で他に深刻な穴があるので Corkly の責務外。Keychain 統合は将来の検討課題。
 - **[Risk] ポート 8569 がデフォルトのまま他のローカルツールと衝突** → bind 失敗を握りつぶさず Settings 画面にエラーを露出。ユーザーは別ポートに変更して解決できる。
 - **[Risk] 認証トークンを `settings.json` の JSON 平文で保存している** → 同上 (Unix 権限 + 同マシン信頼)。ユーザーが意図的にトークンを共有 (例: スクリーンキャプチャ) する事故は UI 側のマスク表示で軽減。
 - **[Risk] `rmcp` の MCP 仕様追従が遅れて、新版クライアントが繋がらなくなる** → `Cargo.toml` の `rmcp` バージョンを明示し、`renovate.json` で update を受け取る運用に乗せる。仕様変更時の再生成は限定的 (1 ツールのみ)。
 - **[Risk] graceful restart 中に進行中の MCP リクエストが切断される** → `rmcp` の `serve_server_with_ct` に `CancellationToken` を渡し、`cancel()` 後に `JoinHandle.await` する設計でドレインを待つ。短時間 (< 1s) の遮断は許容。
-- **[Risk] MCP クライアントが workspace ヘッダーを送らずに繋ぎに来る** → initialize 時点で 400 を返す。MCP クライアント側にはエラーメッセージとして「Set `X-Cork-Workspace` header in your mcp.json」を返す。
-- **[Risk] 任意ディレクトリ参照がプライバシーリスクと誤解される** → 設定画面の説明文に「only directories containing Cork-format tasks (`.md` with `status:` frontmatter) yield results」と明記。
+- **[Risk] MCP クライアントが workspace ヘッダーを送らずに繋ぎに来る** → initialize 時点で 400 を返す。MCP クライアント側にはエラーメッセージとして「Set `X-Corkly-Workspace` header in your mcp.json」を返す。
+- **[Risk] 任意ディレクトリ参照がプライバシーリスクと誤解される** → 設定画面の説明文に「only directories containing Corkly-format tasks (`.md` with `status:` frontmatter) yield results」と明記。
 - **[Trade-off] フロントエンドではトークンを常に平文表示する** (Decision 9 でマスク切替を廃止) → 同じトークン値が下の `mcp.json` スニペットでも平文で見えるため、入力欄だけマスクしても実効的な保護にならない。スクリーンキャプチャ等で意図せず晒すリスクは残るが、ローカル単一ユーザー前提のアプリでは Settings ダイアログを開いている状況自体ユーザー主導であり受容可能と判断。
 - **[Trade-off] v1 は read-only。書き込みは v2 以降** → 「タスクを作って」など書き込み要求には MCP 側で対応できず、ユーザーが GUI に戻る必要がある。スコープを小さく保つ方が初期実装の品質を担保できる。
 - **[Trade-off] サーバプロセスは Tauri と同居** → Tauri アプリ落ちると MCP も落ちる。これは要件の「Tauri 組み込み」の必然的な結果。
@@ -236,4 +236,4 @@ struct ListTasksOutput {
 - アプリ更新でデフォルトポート 8569 が他アプリと競合した場合の通知方法 — 現状は Settings 画面の error 表示で十分と判断。
 - `rmcp` のバージョン pin — 実装時に最新安定版を確認し、`Cargo.toml` に固定する。
 
-> **Note on naming**: 本ドキュメント中で `mcp.json` という単語は、**MCP クライアント側の設定ファイル** (Claude Desktop / Claude Code 等がローカルに置くファイル) を指す。Cork 自身の設定は `settings.json` (既存ストア) の `mcp` トップレベルキー配下に書き込まれ、Cork が `mcp.json` というファイルを生成・参照することは無い。
+> **Note on naming**: 本ドキュメント中で `mcp.json` という単語は、**MCP クライアント側の設定ファイル** (Claude Desktop / Claude Code 等がローカルに置くファイル) を指す。Corkly 自身の設定は `settings.json` (既存ストア) の `mcp` トップレベルキー配下に書き込まれ、Corkly が `mcp.json` というファイルを生成・参照することは無い。

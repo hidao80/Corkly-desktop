@@ -1,6 +1,6 @@
 ## Why
 
-Cork のボードは現在、全タスクを常に一覧表示している。タスク数が増える (50〜100+) と目的のタスクを目視で探すのが困難になる。Linear / GitHub Projects / Jira など、モダンなカンバンツールはほぼすべてがリアルタイム検索を備えており、Cork でも同様の体験を提供する必要がある。
+Corkly のボードは現在、全タスクを常に一覧表示している。タスク数が増える (50〜100+) と目的のタスクを目視で探すのが困難になる。Linear / GitHub Projects / Jira など、モダンなカンバンツールはほぼすべてがリアルタイム検索を備えており、Corkly でも同様の体験を提供する必要がある。
 
 検索は「タイトルに対するあいまい検索」とする。body 本文は対象外とし、カード上で最初に目に入るタイトルに絞ることでパフォーマンスと UX のバランスを取る。大小文字は区別しない。
 
@@ -32,7 +32,7 @@ Cork のボードは現在、全タスクを常に一覧表示している。タ
 - **フロントエンド hook (`src/hooks/useWorkspace.ts`)**: `query` ステート (string) を追加。`query` が変更されるたびに `useEffect` で `loadTasks` を呼ぶ (debounce なし)。`loadTasks` 内部で `listTasks(query \|\| undefined)` を呼ぶ。`setQuery` を公開し、BoardPage が検索入力を hook に伝播できるようにする。
 - **UI コンポーネント**:
   - `AppHeader.tsx` — PathDisplay の右側に SearchBar を追加。`query` / `onQueryChange` を props で受け取る。
-  - `molecules/SearchBar.tsx` (新規) — Search (lucide) アイコン + `<input>` のコンビ。Cork デザイントークン準拠のスタイル。controlled コンポーネント。
+  - `molecules/SearchBar.tsx` (新規) — Search (lucide) アイコン + `<input>` のコンビ。Corkly デザイントークン準拠のスタイル。controlled コンポーネント。
   - `BoardPage.tsx` — `useWorkspace` から `query` / `setQuery` を受け取り、AppHeader に伝播する。
   - `BoardLayout.tsx` — 変更なし (header slot が AppHeader を受け入れる既存構造)。
 - **テスト (Rust)**: `task.rs` の既存テストに `list_tasks` の query フィルタリングのユニットテストを追加 (モックファイルを使用)。`nucleo_matcher` の基本的な動作確認テスト。`state.rs` にキャッシュ関連のテストを追加。

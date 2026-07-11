@@ -16,7 +16,7 @@ The application SHALL render a sonner `<Toaster />` component at the root level 
 
 ### Requirement: Toast theming
 
-The Toaster SHALL use sonner's `theme="dark"` mode and SHALL be styled to match Cork's design tokens (`cork-bg` for background, `cork-surface` for elevated surfaces, `cork-border` for borders, `cork-text` for text, `cork-accent` for action highlights).
+The Toaster SHALL use sonner's `theme="dark"` mode and SHALL be styled to match Corkly's design tokens (`cork-bg` for background, `cork-surface` for elevated surfaces, `cork-border` for borders, `cork-text` for text, `cork-accent` for action highlights).
 
 #### Scenario: Dark theme applied
 

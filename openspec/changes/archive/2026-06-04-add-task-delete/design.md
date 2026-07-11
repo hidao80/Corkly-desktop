@@ -1,6 +1,6 @@
 ## Context
 
-Cork uses Tauri v2 with a React/TypeScript frontend following atomic design. Tasks are Markdown files in a workspace directory. Currently there is no in-app deletion — users must manually remove `.md` files via the OS file manager.
+Corkly uses Tauri v2 with a React/TypeScript frontend following atomic design. Tasks are Markdown files in a workspace directory. Currently there is no in-app deletion — users must manually remove `.md` files via the OS file manager.
 
 `TaskDetailDialog` handles task editing and is wired through `BoardPage` (owns side-effect handlers) → props. `IconButton` and `Select` are the primary interaction atoms/molecules. `Select.tsx` already implements a click-outside + Escape dropdown pattern that `DropdownMenu` will replicate.
 

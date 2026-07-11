@@ -1,6 +1,6 @@
 ## Context
 
-Cork は frontmatter ベースの Markdown Kanban で、`task-tags` (archived 2026-06-05) によりタスクが任意の文字列タグを持てるようになった。`search-tasks` (archived 2026-06-05) によりタイトルの fuzzy 検索もできる。しかし「タグで絞り込む」UI が無いため、タグは付与できても活用できない状態。本 change はこのギャップを埋める。
+Corkly は frontmatter ベースの Markdown Kanban で、`task-tags` (archived 2026-06-05) によりタスクが任意の文字列タグを持てるようになった。`search-tasks` (archived 2026-06-05) によりタイトルの fuzzy 検索もできる。しかし「タグで絞り込む」UI が無いため、タグは付与できても活用できない状態。本 change はこのギャップを埋める。
 
 現状の関連実装:
 
@@ -163,9 +163,9 @@ export const listTasks = (query?: string, filters?: TagFilter[]) => {
 
 `queryIdRef` 同様の race condition 防止カウンタは filters 変更 + query 変更を統合した形に変更する (`requestIdRef`)。
 
-### 永続化: Rust 側コマンドで `tauri-plugin-store` を wrap する (既存 Cork パターン踏襲)
+### 永続化: Rust 側コマンドで `tauri-plugin-store` を wrap する (既存 Corkly パターン踏襲)
 
-Cork の既存パターン (`workspace.rs` の `set/get_workspace_directory`) と同様、**frontend は `@tauri-apps/plugin-store` を直接使わず、Rust 側の Tauri command 経由で store にアクセスする**。`@tauri-apps/plugin-store` を frontend deps に新規追加しない理由は (1) 既存依存と一貫させる (2) ストアスキーマを Rust 側に閉じ込めて変更を局所化する (3) capability も既存の `store:default` だけで賄える。
+Corkly の既存パターン (`workspace.rs` の `set/get_workspace_directory`) と同様、**frontend は `@tauri-apps/plugin-store` を直接使わず、Rust 側の Tauri command 経由で store にアクセスする**。`@tauri-apps/plugin-store` を frontend deps に新規追加しない理由は (1) 既存依存と一貫させる (2) ストアスキーマを Rust 側に閉じ込めて変更を局所化する (3) capability も既存の `store:default` だけで賄える。
 
 ストアファイル: 既存の `settings.json` を流用 (workspace_dir と同居)。データ構造:
 
@@ -304,7 +304,7 @@ molecules/
 
 `SearchBar` の `Cmd/Ctrl+F` ハンドラと同じパターンで、`BoardPage` (もしくは `useFilterPopover` 抽出フック) に `Cmd/Ctrl+Shift+F` リスナーを置く。`isOpen` が `true` のときは Esc でクローズ。
 
-`Cmd/Ctrl+Shift+F` の選定根拠: VSCode / Cursor / GitHub Desktop など開発者ツール系の慣例で「絞り込み (workspace 検索)」に割り当てられているため、Cork のユーザ層 (Markdown / 開発タスク管理) に馴染みがある。Tauri webview ではブラウザレベルの予約 (Linux Chromium の「フォントサイズ拡大」等) は奪われない実装で確認済み。`Cmd/Ctrl+K` 系は将来のコマンドパレット候補として温存する。
+`Cmd/Ctrl+Shift+F` の選定根拠: VSCode / Cursor / GitHub Desktop など開発者ツール系の慣例で「絞り込み (workspace 検索)」に割り当てられているため、Corkly のユーザ層 (Markdown / 開発タスク管理) に馴染みがある。Tauri webview ではブラウザレベルの予約 (Linux Chromium の「フォントサイズ拡大」等) は奪われない実装で確認済み。`Cmd/Ctrl+K` 系は将来のコマンドパレット候補として温存する。
 
 `SearchBar` 既存のクリーンアップに倣い、`useEffect` の return で `removeEventListener` する。
 

@@ -13,7 +13,7 @@ We add it now because everything we need is already in the dependency tree: the 
   3. Info string absent (bare ` ``` `) → leave the block unhighlighted (no Prism pass at all — not even "auto").
 - The Markdown round-trip is preserved verbatim: rule 2 does **not** rewrite the stored language back to `javascript`. The original `go` info string stays on disk; highlighting is a render-time concern only.
 - `CodeHighlightNode` is added to the editor's registered node list (required by the highlight transforms).
-- A small Cork-themed token palette is added to `theme.codeHighlight`, drawn from existing `cork-*` color tokens so it harmonizes with the rest of the editor and stays WCAG-AA legible against the `cork-bg` code-block well.
+- A small Corkly-themed token palette is added to `theme.codeHighlight`, drawn from existing `cork-*` color tokens so it harmonizes with the rest of the editor and stays WCAG-AA legible against the `cork-bg` code-block well.
 - Existing keyboard behavior is preserved: arrow-key escape at code-block boundaries, Shift+Enter escape, `$convertFromMarkdownString`/`$convertToMarkdownString` round-trip, and the inline-format guard for code-block text all continue to work. (Design.md justifies why we do **not** call upstream's `registerCodeHighlighting` wholesale — it bundles a `registerCodeIndentation` step that would clobber our arrow-key escape.)
 - **Out of scope** (deferred to a separate task by the user): UI for changing the language of an already-inserted code block.
 

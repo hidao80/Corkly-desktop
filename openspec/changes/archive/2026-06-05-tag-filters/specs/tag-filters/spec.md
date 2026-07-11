@@ -274,7 +274,7 @@ frontend hook `useFilterStore(workspaceDir: string | null)` は、`{ filters: Ta
 #### Scenario: アプリ再起動後に前回のフィルタが復元される
 
 - **GIVEN** 前回セッションで `[{operator:"is_not_empty"}]` が保存済み
-- **WHEN** Cork を再起動して同じワークスペースを開く
+- **WHEN** Corkly を再起動して同じワークスペースを開く
 - **THEN** `filters` は `[{operator:"is_not_empty"}]` で復元される
 - **AND** 各フィルタには新しい `id` (UUID) が振られる
 

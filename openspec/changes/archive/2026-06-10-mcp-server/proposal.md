@@ -2,15 +2,15 @@
 
 ## Why
 
-Cork はローカル Markdown ファイルを Kanban として扱うアプリだが、現在は GUI からしかタスクを参照できず、Claude / Cursor などの LLM クライアントから状況を尋ねるたびに「ユーザーが GUI を見て手で伝える」必要がある。Model Context Protocol (MCP) を喋るサーバを Cork 自身に組み込めば、対応 MCP クライアントが直接タスク一覧を取得でき、「いま自分が何を抱えているか」を AI 駆動のワークフローに自然に組み込めるようになる。
+Corkly はローカル Markdown ファイルを Kanban として扱うアプリだが、現在は GUI からしかタスクを参照できず、Claude / Cursor などの LLM クライアントから状況を尋ねるたびに「ユーザーが GUI を見て手で伝える」必要がある。Model Context Protocol (MCP) を喋るサーバを Corkly 自身に組み込めば、対応 MCP クライアントが直接タスク一覧を取得でき、「いま自分が何を抱えているか」を AI 駆動のワークフローに自然に組み込めるようになる。
 
 v1 は read-only の `list_tasks` だけ。スコープを最小化して土台 (transport、認証、設定 UI、ライフサイクル) を先に固めることで、後続の書き込み系ツールを最小コストで足せる状態にする。
 
 ## What Changes
 
-- Cork プロセス内で **Streamable HTTP** トランスポートの MCP サーバを `127.0.0.1` に bind して稼働させる (`rmcp` クレートを採用)。
+- Corkly プロセス内で **Streamable HTTP** トランスポートの MCP サーバを `127.0.0.1` に bind して稼働させる (`rmcp` クレートを採用)。
 - 公開ツールは **`list_tasks()` のみ**。戻り値は `{ "tasks": [{ title, file_path, status, tags }] }` (MCP 仕様で `outputSchema` の root が `object` 必須のため単一フィールド object でラップ)。`frontmatter` に `status` が設定された `.md` ファイルだけを返す既存の `read_all_tasks` セマンティクスを踏襲。
-- 接続には MCP クライアントから **Bearer トークン認証** と **`X-Cork-Workspace` ヘッダー** (絶対パス) を要求する。どちらか欠ければ拒否する。
+- 接続には MCP クライアントから **Bearer トークン認証** と **`X-Corkly-Workspace` ヘッダー** (絶対パス) を要求する。どちらか欠ければ拒否する。
 - 設定はすべて **グローバル** (プロセス単位): 有効/無効、認証トークン。既存 `settings.json` (`tauri_plugin_store`) の新規トップレベルキー `mcp` に統合して永続化。ポートは `DEFAULT_PORT = 8569` 固定でユーザー設定不可。
 - 既存の `SettingsDialog` に「MCP Server」セクションを追加。OFF 時は Toggle + StatusIndicator のみ。ON 時は加えて Auth Token (手入力 + Generate + Copy)、`mcp.json` スニペットを表示。コピー操作は既存「Copy Path」と同じく `toast.success` でフィードバック。
 - ポートが 8569 で固定 (UI なし)。bind 失敗時は Settings 画面の StatusIndicator + ErrorBanner で状態をユーザーに通知。
@@ -22,7 +22,7 @@ v1 は read-only の `list_tasks` だけ。スコープを最小化して土台 
 
 ### New Capabilities
 
-- `mcp-server`: Cork に Model Context Protocol サーバを組み込み、認証された外部 MCP クライアントが Cork のタスク一覧を取得できるようにする。トランスポート、認証、ツール公開、グローバル設定 UI、ライフサイクル管理を包含する。
+- `mcp-server`: Corkly に Model Context Protocol サーバを組み込み、認証された外部 MCP クライアントが Corkly のタスク一覧を取得できるようにする。トランスポート、認証、ツール公開、グローバル設定 UI、ライフサイクル管理を包含する。
 
 ### Modified Capabilities
 

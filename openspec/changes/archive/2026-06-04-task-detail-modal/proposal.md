@@ -1,6 +1,6 @@
 ## Why
 
-Currently, tasks in Cork can only be created with a title, status, and body, but once created there is no way to view or edit the full task body. Users who want to review or modify a task's content must navigate to the underlying Markdown file. Adding a modal-based detail view with inline editing will provide a seamless read/edit experience without leaving the kanban board, matching the expectations of a modern project management tool.
+Currently, tasks in Corkly can only be created with a title, status, and body, but once created there is no way to view or edit the full task body. Users who want to review or modify a task's content must navigate to the underlying Markdown file. Adding a modal-based detail view with inline editing will provide a seamless read/edit experience without leaving the kanban board, matching the expectations of a modern project management tool.
 
 ## What Changes
 

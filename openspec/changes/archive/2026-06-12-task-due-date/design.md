@@ -1,6 +1,6 @@
 ## Context
 
-Cork のタスクは frontmatter に `status` / `order` / `tags` を持つが、期日の概念がない。本変更でタスクに「期日」を一つ持たせ、ボード上で締め切りの近さ・超過を可視化する。
+Corkly のタスクは frontmatter に `status` / `order` / `tags` を持つが、期日の概念がない。本変更でタスクに「期日」を一つ持たせ、ボード上で締め切りの近さ・超過を可視化する。
 
 既存の `tags`（`Option<Vec<String>>` を Keep / Set / Clear の 3 状態で扱う設計）が `date` 実装のほぼ完全な参照モデルになる。`update_task` のタグ処理、`computeDirtyUpdates`、`TagEditor` + `TagSuggestionPopover`（ポータルでダイアログ top layer に出すポップオーバー）といったパターンをそのまま日付向けに踏襲する。
 
