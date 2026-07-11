@@ -3,7 +3,7 @@ members = ["cli"]
 resolver = "2"
 
 [package]
-name = "cork"
+name = "Corkly"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -23,8 +23,6 @@ tauri-plugin-opener = "=2.5.4"
 tauri-plugin-fs = { version = "=2.5.1", features = ["watch"] }
 tauri-plugin-store = "=2.4.3"
 tauri-plugin-single-instance = "=2.4.2"
-tauri-plugin-updater = "=2.10.1"
-tauri-plugin-process = "=2.3.1"
 serde = { version = "=1.0.228", features = ["derive"] }
 serde_json = { version = "=1.0.150", features = ["preserve_order"] }
 rfd = "=0.17.2"
@@ -32,6 +30,21 @@ gray_matter = "=0.3.2"
 yaml-rust2 = "=0.10.4"
 rayon = "=1.12.0"
 nucleo-matcher = "=0.3.1"
+rmcp = { version = "=1.7.0", features = [
+  "server",
+  "transport-streamable-http-server",
+  "macros",
+  "schemars",
+] }
+rand = "=0.9.4"
+tokio = { version = "=1.52.3", features = ["sync", "time", "rt", "fs"] }
+tokio-util = "=0.7.18"
+axum = "=0.8.9"
+http = "=1.4.2"
+subtle = "=2.6.1"
+schemars = "=1.2.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "=0.3.2", features = [
   "NSColor",
   "NSWindow",
@@ -49,19 +62,6 @@ objc2-foundation = { version = "=0.3.2", features = [
 ] }
 objc2 = "=0.6.4"
 block2 = "=0.6.2"
-rmcp = { version = "=1.7.0", features = [
-  "server",
-  "transport-streamable-http-server",
-  "macros",
-  "schemars",
-] }
-rand = "=0.9.4"
-tokio = { version = "=1.52.3", features = ["sync", "time", "rt", "fs"] }
-tokio-util = "=0.7.18"
-axum = "=0.8.9"
-http = "=1.4.2"
-subtle = "=2.6.1"
-schemars = "=1.2.1"
 
 [dev-dependencies]
 tempfile = "=3.27.0"

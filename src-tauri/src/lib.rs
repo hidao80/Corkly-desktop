@@ -42,8 +42,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init())
         .manage(AppState::new())
         .invoke_handler(tauri::generate_handler![
             workspace::pick_directory,
@@ -93,7 +91,7 @@ pub fn run() {
             // and drop the user into WelcomePage despite a perfectly good
             // workspace.
             //
-            // `cork <path>` launched while Cork was *not* already running takes
+            // `cork <path>` launched while Corkly was *not* already running takes
             // the cold path: this is the same process whose argv carries the
             // directory (single-instance found no peer to forward to), so we
             // seed that workspace into `main`. A bare `cork` (or any normal
@@ -143,6 +141,7 @@ pub fn run() {
         // so future Tauri releases may add variants we don't care about.
         // Silently ignoring them keeps forward compatibility.
         match event {
+            #[cfg(target_os = "macos")]
             tauri::RunEvent::Reopen {
                 has_visible_windows: false,
                 ..
@@ -157,27 +156,20 @@ pub fn run() {
                 // around.
                 workspace::handle_macos_reopen(app_handle);
             }
+            #[cfg(target_os = "macos")]
             tauri::RunEvent::ExitRequested {
                 code: None, api, ..
             } => {
-                // The user closed the last window. Default Tauri behaviour
-                // is to set `ControlFlow::Exit` and kill the process here —
-                // which on macOS violates the long-standing convention that
-                // an app sticks around in the Dock until the user
-                // explicitly quits. Without this prevent, the
-                // `RunEvent::Reopen` handler above never gets a chance to
-                // fire because there's no process left to receive the
-                // event.
+                // macOS convention: an app stays in the Dock even after all
+                // its windows are closed, so we block the default "last
+                // window closed → exit" behaviour. Without this the Reopen
+                // handler above would never fire (no process left).
                 //
-                // We only block the `code: None` path — the user-window-
-                // close cascade. Programmatic exits (`AppHandle::exit(N)`
-                // / `AppHandle::restart()`) carry `code: Some(N)` and
-                // terminate as requested. The predefined `Cork > Quit`
-                // menu / `Cmd+Q` reaches AppKit's `terminate:` selector
-                // by a separate path that, in Tauri 2.11, kills the
-                // process via `applicationWillTerminate:` without coming
-                // through this handler — verified by manual testing, but
-                // worth re-checking on Tauri upgrades.
+                // Windows / Linux use the opposite convention (last window
+                // closed → app exits), so this arm is only compiled on
+                // macOS. Programmatic exits (`code: Some(N)`) fall through
+                // to the default and terminate as requested on every
+                // platform.
                 api.prevent_exit();
             }
             tauri::RunEvent::Exit => {

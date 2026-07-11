@@ -1,0 +1,23 @@
+#!/bin/sh
+# Corkly Debian post-install: symlink cork → cork on PATH.
+#
+# Tauri names the bundled sidecar `cork` (see AGENTS.md → CLI distribution
+# for why the app binary itself claims `cork`). On Linux we want the
+# user-facing command to be plain `cork`, matching macOS (Homebrew Cask does
+# the same symlink) and Windows (NSIS renames cork.exe → cork.exe).
+#
+# Skip silently if the symlink already exists — running dpkg-reconfigure
+# should be idempotent — but replace a stale symlink pointing somewhere else.
+set -e
+
+if [ "$1" = "configure" ]; then
+    if [ -x /usr/bin/cork ]; then
+        if [ -L /usr/bin/cork ] && [ "$(readlink /usr/bin/cork)" = "/usr/bin/cork" ]; then
+            :
+        else
+            ln -sf /usr/bin/cork /usr/bin/cork
+        fi
+    fi
+fi
+
+exit 0

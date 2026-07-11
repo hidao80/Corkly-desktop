@@ -3,10 +3,19 @@ import { chmodSync, copyFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Builds the `cork` CLI and stages it as a Tauri sidecar so `tauri build` / `tauri dev`
-// embed it into `Cork.app/Contents/MacOS/cork-cli`. Tauri requires the binary to carry a
-// `-<target-triple>` suffix (see tauri.conf.json `bundle.externalBin`), which it strips when
-// bundling. The Homebrew Cask then symlinks the embedded binary onto PATH as `cork`.
+// Builds the `cork` CLI and stages it as a Tauri sidecar so `tauri build` /
+// `tauri dev` embed it next to the app binary. Tauri requires the binary to
+// carry a `-<target-triple>` suffix (see tauri.conf.json `bundle.externalBin`),
+// which it strips when bundling. On Windows the resulting binary keeps its
+// `.exe` extension after the triple is dropped.
+//
+// Platform layout inside the bundle after Tauri strips the triple:
+// - macOS: `Corkly.app/Contents/MacOS/cork`, symlinked to /usr/local/bin/cork
+//   by the Homebrew Cask.
+// - Windows: `<InstallDir>\cork.exe`, renamed to `cork.exe` by the NSIS
+//   installer's post-install hook and the install dir is added to user PATH.
+// - Linux: `/usr/bin/cork`, symlinked to `/usr/bin/cork` by the deb
+//   post-install script (or launched directly out of the AppImage).
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const srcTauri = join(scriptDir, "..", "src-tauri");
@@ -22,19 +31,22 @@ function hostTargetTriple(): string {
 
 function main() {
   console.log("Building cork CLI (release)...");
-  execFileSync("cargo", ["build", "--release", "-p", "cork-cli"], {
+  execFileSync("cargo", ["build", "--release", "-p", "cork"], {
     cwd: srcTauri,
     stdio: "inherit",
   });
 
   const triple = hostTargetTriple();
-  const source = join(srcTauri, "target", "release", "cork-cli");
+  const exeSuffix = process.platform === "win32" ? ".exe" : "";
+  const source = join(srcTauri, "target", "release", `cork${exeSuffix}`);
   const binariesDir = join(srcTauri, "binaries");
-  const dest = join(binariesDir, `cork-cli-${triple}`);
+  const dest = join(binariesDir, `cork-${triple}${exeSuffix}`);
 
   mkdirSync(binariesDir, { recursive: true });
   copyFileSync(source, dest);
-  chmodSync(dest, 0o755);
+  if (process.platform !== "win32") {
+    chmodSync(dest, 0o755);
+  }
 
   console.log(`Sidecar staged: ${dest}`);
 }
