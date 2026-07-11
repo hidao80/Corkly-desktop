@@ -26,19 +26,6 @@
 
 ## Installation
 
-### macOS (Homebrew)
-
-```
-brew install --cask hidao80/tap/cork
-```
-
-To update:
-
-```
-brew update
-brew upgrade hidao80/tap/cork
-```
-
 ### Windows
 
 Download the latest `Corkly_<version>_x64-setup.exe` from the [Releases page](https://github.com/hidao80/Corkly/releases/latest) and run it. The installer is a per-user install (no admin rights required) and adds `cork` to your `PATH`.
