@@ -51,11 +51,11 @@ describe("CorkCodeNode (language chip)", () => {
   // `cs` is a shorthand Prism itself dual-registers as a second
   // `Prism.languages` key pointing at the same `csharp` grammar object (so
   // highlighting already worked before this test existed) — but
-  // `getCorkLanguageFriendlyName` resolves through `prismLanguages.ts`'s own
+  // `getCorklyLanguageFriendlyName` resolves through `prismLanguages.ts`'s own
   // `CORK_LANGUAGE_ALIAS_BY_ID`, which never touches `Prism.languages`.
   // Without a `cs` → `csharp` entry there, the chip would show the raw "cs"
   // instead of "C#" even though the block highlights correctly underneath.
-  test("` ```cs ` shows the `C#` chip via Cork's own alias table", async () => {
+  test("` ```cs ` shows the `C#` chip via Corkly's own alias table", async () => {
     const { screen } = await renderTestEditor({
       initialValue: "```cs\nConsole.WriteLine\n```",
     });
@@ -66,7 +66,7 @@ describe("CorkCodeNode (language chip)", () => {
   });
 
   // `zig` is in neither `prismLanguages.ts`'s alias/friendly-name tables nor
-  // upstream's, so `getCorkLanguageFriendlyName` returns the raw fence
+  // upstream's, so `getCorklyLanguageFriendlyName` returns the raw fence
   // string. The chip displays the user-typed identifier verbatim per the
   // task spec.
   test("` ```zig ` shows the raw fence string `zig` (unbundled language)", async () => {
@@ -121,7 +121,7 @@ describe("CorkCodeNode (language chip)", () => {
 });
 
 // `exportDOM` builds the `text/html` clipboard payload used when a code
-// block is copied out of Cork into another app (Slack, Notion, a browser
+// block is copied out of Corkly into another app (Slack, Notion, a browser
 // textarea, ...) — a separate path from `createDOM` (live editor rendering)
 // and from same-app paste (which round-trips through the JSON clipboard
 // format instead and never touches `exportDOM`). Before wrapping this to

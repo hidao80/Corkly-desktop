@@ -69,7 +69,7 @@ describe("FloatingCodeLanguageEditorPlugin", () => {
 
   // Free text that doesn't match any known language stays verbatim (in the
   // user's exact casing) — fenced code blocks accept arbitrary info strings,
-  // and this is the escape hatch for a language Cork has no friendly name for.
+  // and this is the escape hatch for a language Corkly has no friendly name for.
   test("typing an unrecognized language and pressing Enter commits it verbatim", async () => {
     const { screen, user } = await renderTestEditor({
       initialValue: "```js\nconsole.log\n```",

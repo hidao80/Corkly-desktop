@@ -33,7 +33,7 @@ export function WelcomePage({ onDirectorySelected }: WelcomePageProps) {
   return (
     <WelcomeLayout>
       <WelcomeHero
-        title="Cork"
+        title="Corkly"
         ctaLabel="Select Workspace Directory"
         ctaIcon={<FolderOpen className="size-4" />}
         onCta={handleSelect}

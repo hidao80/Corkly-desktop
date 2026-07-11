@@ -8,7 +8,7 @@ import {
   type NodeKey,
 } from "lexical";
 
-import { getCorkLanguageFriendlyName } from "./prismLanguages";
+import { getCorklyLanguageFriendlyName } from "./prismLanguages";
 
 // Subclass of `@lexical/code`'s `CodeNode` whose rendered DOM is a
 // `<div class="cork-code-block-wrapper">` holding two siblings:
@@ -157,7 +157,7 @@ export function $createCopyIcon(): SVGSVGElement {
 // `CodeBlockHighlightPlugin`'s rule 3 treats a blank/`plain` fence as, and
 // the same one `FloatingCodeLanguageEditorPlugin`'s "Plain Text" list entry
 // resolves to) so the wording can never drift out of sync between the two.
-const NO_LANGUAGE_LABEL = getCorkLanguageFriendlyName("plain");
+const NO_LANGUAGE_LABEL = getCorklyLanguageFriendlyName("plain");
 
 // Expando cache set once in `createDOM`. `updateDOM`/`getDOMSlot` read these
 // directly instead of re-running `querySelector` on every reconcile — Lexical
@@ -169,17 +169,17 @@ const NO_LANGUAGE_LABEL = getCorkLanguageFriendlyName("plain");
 // DOM element itself (not the Lexical node, which is immutable/cloned each
 // update) — it stays valid for the wrapper's whole lifetime since only this
 // file ever writes into the subtree between it and its two children.
-type CorkCodeWrapperElement = HTMLElement & {
+type CorklyCodeWrapperElement = HTMLElement & {
   __corkChip?: HTMLSpanElement;
   __corkCode?: HTMLElement;
 };
 
 function $applyChip(chip: HTMLSpanElement, language: string | null | undefined): void {
-  chip.textContent = language ? getCorkLanguageFriendlyName(language) : NO_LANGUAGE_LABEL;
+  chip.textContent = language ? getCorklyLanguageFriendlyName(language) : NO_LANGUAGE_LABEL;
 }
 
 function $findInnerCodeElement(wrapper: HTMLElement): HTMLElement {
-  const cached = (wrapper as CorkCodeWrapperElement).__corkCode;
+  const cached = (wrapper as CorklyCodeWrapperElement).__corkCode;
   if (cached !== undefined) return cached;
   // Not `:scope > ...` — `<code>` is nested one level inside
   // `.cork-code-block-code-area`, not a direct child of the wrapper. A plain
@@ -189,12 +189,12 @@ function $findInnerCodeElement(wrapper: HTMLElement): HTMLElement {
   if (code === null) {
     throw new Error("CorkCodeNode wrapper is missing its inner <code> element");
   }
-  (wrapper as CorkCodeWrapperElement).__corkCode = code;
+  (wrapper as CorklyCodeWrapperElement).__corkCode = code;
   return code;
 }
 
 function $findLanguageChip(wrapper: HTMLElement): HTMLSpanElement {
-  const cached = (wrapper as CorkCodeWrapperElement).__corkChip;
+  const cached = (wrapper as CorklyCodeWrapperElement).__corkChip;
   if (cached !== undefined) return cached;
   // Not `:scope > ...` — the chip is nested one level inside `.cork-code-block-tab`,
   // not a direct child of the wrapper. A plain descendant selector is fine
@@ -204,7 +204,7 @@ function $findLanguageChip(wrapper: HTMLElement): HTMLSpanElement {
   if (chip === null) {
     throw new Error("CorkCodeNode wrapper is missing its language chip");
   }
-  (wrapper as CorkCodeWrapperElement).__corkChip = chip;
+  (wrapper as CorklyCodeWrapperElement).__corkChip = chip;
   return chip;
 }
 
@@ -249,7 +249,7 @@ export class CorkCodeNode extends CodeNode {
   }
 
   createDOM(config: EditorConfig): HTMLElement {
-    const wrapper: CorkCodeWrapperElement = document.createElement("div");
+    const wrapper: CorklyCodeWrapperElement = document.createElement("div");
     wrapper.className = WRAPPER_CLASS;
 
     // A real <button>, not a <div> — the tab itself is the click target for

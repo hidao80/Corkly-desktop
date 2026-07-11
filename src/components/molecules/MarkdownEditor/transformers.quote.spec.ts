@@ -4,11 +4,11 @@ import { describe, expect, test } from "vitest";
 
 import { $readMarkdown, $setMarkdown, createTestHeadlessEditor } from "./__tests__/utils";
 
-// Cork's custom QUOTE transformer extends `@lexical/markdown` to handle
+// Corkly's custom QUOTE transformer extends `@lexical/markdown` to handle
 // `> >` nested blockquotes — the upstream transformer flattens depth-2+ on
 // import. This is the most fragile transformer in the bundle; recent reviews
 // surfaced multiple round-trip bugs along this path.
-describe("Cork QUOTE transformer", () => {
+describe("Corkly QUOTE transformer", () => {
   test("a depth-2 nested blockquote round-trips identically", () => {
     const editor = createTestHeadlessEditor();
     $setMarkdown(editor, "> > Hello");

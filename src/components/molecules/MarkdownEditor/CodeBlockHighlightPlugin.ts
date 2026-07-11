@@ -24,7 +24,7 @@ import {
 } from "lexical";
 import { useEffect } from "react";
 
-import { CORK_BUNDLED_LANGUAGES, normalizeCorkCodeLanguage } from "./prismLanguages";
+import { CORK_BUNDLED_LANGUAGES, normalizeCorklyCodeLanguage } from "./prismLanguages";
 
 // Why this plugin exists, in two parts:
 //
@@ -75,7 +75,7 @@ import { CORK_BUNDLED_LANGUAGES, normalizeCorkCodeLanguage } from "./prismLangua
 
 const PLAIN_TOKENIZER: Tokenizer = { ...PrismTokenizer, defaultLanguage: null };
 
-// `normalizeCorkCodeLanguage` maps the user-typed aliases `text` / `plaintext`
+// `normalizeCorklyCodeLanguage` maps the user-typed aliases `text` / `plaintext`
 // / `plain` all to the canonical `plain`, which is NOT in the bundled Prism
 // grammar set. Treating it as rule 3 (no highlight) — instead of letting it
 // fall through to rule 2 (which would highlight `text` blocks as JavaScript)
@@ -84,7 +84,7 @@ const PLAIN_LANGUAGE_ID = "plain";
 
 function resolveHighlightLanguage(stored: string | null | undefined): string | null {
   if (!stored) return null; // rule 3
-  const normalized = normalizeCorkCodeLanguage(stored);
+  const normalized = normalizeCorklyCodeLanguage(stored);
   if (normalized === PLAIN_LANGUAGE_ID) return null; // rule 3 via `plain` aliases
   if (CORK_BUNDLED_LANGUAGES.has(normalized)) return normalized; // rule 1
   return DEFAULT_CODE_LANGUAGE; // rule 2 auto
