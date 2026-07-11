@@ -431,9 +431,9 @@ fn build_seeded_window(
 pub(crate) fn handle_macos_reopen(app: &tauri::AppHandle) {
     let windows = app.webview_windows();
     if windows.is_empty() {
-        if let Err(e) = reopen_with_history_restore(app) {
-            eprintln!("failed to open a window in response to Dock reopen: {e}");
-        }
+        // if let Err(e) = reopen_with_history_restore(app) {
+        //     eprintln!("failed to open a window in response to Dock reopen: {e}");
+        // }
         return;
     }
     for (_, window) in windows {
