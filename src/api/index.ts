@@ -7,7 +7,7 @@ export {
   onMcpSettingsChange,
   updateMcpSettings,
 } from "./mcp";
-export { onCheckForUpdates, onOpenCreateTask, onOpenSettings } from "./menu";
+export { onOpenCreateTask, onOpenSettings } from "./menu";
 export { openUrl } from "./opener";
 export { getStatuses, saveStatuses } from "./statuses";
 export {
@@ -21,7 +21,6 @@ export {
   renumberTasks,
   updateTask,
 } from "./tasks";
-export { checkForUpdate, type DownloadProgress, downloadAndInstall, relaunchApp } from "./updater";
 export {
   getWorkspaceDirectory,
   getWorkspaceFilters,
