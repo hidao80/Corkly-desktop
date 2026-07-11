@@ -8,16 +8,27 @@ use tauri::{App, Emitter, EventTarget, Manager};
 /// focused. The first match wins — there can only be one focused window per
 /// process at a time, and `is_focused()` failures are degraded to `false`
 /// (the worst case is the menu event silently no-ops, which is harmless).
+///
+/// With exactly one window there's no ambiguity to resolve, so that window
+/// is returned unconditionally rather than trusting `is_focused()`. On
+/// Windows, `is_focused()` reflects the native `WM_SETFOCUS` message, which
+/// the top-level window only receives once something inside the WebView2
+/// content has been clicked — right after startup (before any such click)
+/// it reports `false` even though the window is the active/foreground one,
+/// which made every menu action silently no-op until the user clicked into
+/// the page first.
 fn focused_webview_window(app: &tauri::AppHandle) -> Option<tauri::WebviewWindow> {
-    app.webview_windows()
-        .into_values()
-        .find(|w| w.is_focused().unwrap_or(false))
+    let windows = app.webview_windows();
+    if windows.len() == 1 {
+        return windows.into_values().next();
+    }
+    windows.into_values().find(|w| w.is_focused().unwrap_or(false))
 }
 
 pub fn setup(app: &mut App) -> tauri::Result<()> {
     // macOS's native About panel shows "Version {ApplicationVersion} ({Version})".
     // Both keys fall back to the same Info.plist value (Tauri sets
-    // CFBundleShortVersionString and CFBundleVersion identically, since Cork has
+    // CFBundleShortVersionString and CFBundleVersion identically, since Corkly has
     // no separate build-number concept), which is what produces the duplicated
     // "Version 0.21.0 (0.21.0)". Passing an explicit empty `short_version` blanks
     // out the parenthetical instead of falling back to that duplicate value.
@@ -25,9 +36,6 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
         .version(Some(app.package_info().version.to_string()))
         .short_version(Some(String::new()))
         .build();
-
-    let check_for_updates_item =
-        MenuItemBuilder::with_id("check_for_updates", "Check for Updates...").build(app)?;
 
     let settings_item = MenuItemBuilder::with_id("settings", "Settings...")
         .accelerator("CmdOrCtrl+,")
@@ -45,20 +53,27 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
         .accelerator("CmdOrCtrl+R")
         .build(app)?;
 
-    let app_menu = SubmenuBuilder::new(app, "Cork")
-        .about(Some(about_metadata))
-        .item(&check_for_updates_item)
-        .separator()
-        .item(&settings_item)
-        .separator()
-        .services()
-        .separator()
-        .hide()
-        .hide_others()
-        .show_all()
-        .separator()
-        .quit()
-        .build()?;
+    let app_menu = {
+        let builder = SubmenuBuilder::new(app, "Corkly")
+            .about(Some(about_metadata))
+            .separator()
+            .item(&settings_item)
+            .separator();
+
+        // `services`, `hide`, `hide_others`, `show_all` are macOS-only
+        // predefined menu items in Tauri v2. They don't exist on the
+        // SubmenuBuilder for other targets.
+        #[cfg(target_os = "macos")]
+        let builder = builder
+            .services()
+            .separator()
+            .hide()
+            .hide_others()
+            .show_all()
+            .separator();
+
+        builder.quit().build()?
+    };
 
     let file_menu = SubmenuBuilder::new(app, "File")
         .item(&new_task_item)
@@ -92,12 +107,6 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
     app.set_menu(menu)?;
 
     app.on_menu_event(|app, event| match event.id().0.as_str() {
-        "check_for_updates" => {
-            if let Some(window) = focused_webview_window(app) {
-                let target = EventTarget::webview_window(window.label());
-                let _ = app.emit_to(target, "menu:check-for-updates", ());
-            }
-        }
         "settings" => {
             // Multi-window emit scoping. Two ingredients have to cooperate
             // for the notification to land on exactly one window:
@@ -125,7 +134,7 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
             // If we can't identify a focused window (rare; e.g. focus is in
             // another app at the moment the accelerator fires) the event is
             // dropped: no data is at risk, the worst case is the user has
-            // to press `Cmd+,` again with Cork in the foreground.
+            // to press `Cmd+,` again with Corkly in the foreground.
             if let Some(window) = focused_webview_window(app) {
                 let target = EventTarget::webview_window(window.label());
                 let _ = app.emit_to(target, "menu:open-settings", ());

@@ -444,7 +444,7 @@ function cellAware(transformer: ElementTransformer): ElementTransformer {
 // nearest block ancestor (`INTERNAL_$isBlock`) and calls `insertNewAfter` on
 // it. With inline content directly inside the QuoteNode, that ancestor is the
 // QuoteNode itself and the default `QuoteNode.insertNewAfter` exits the
-// block — the long-standing Cork bug where Enter dropped you out of a quote.
+// block — the long-standing Corkly bug where Enter dropped you out of a quote.
 // With a wrapping ParagraphNode the ancestor is the paragraph instead, so
 // Enter splits it and `ParagraphNode.insertNewAfter` appends a sibling
 // paragraph INSIDE the QuoteNode — "stay in the quote" falls out of the
@@ -1252,7 +1252,7 @@ function $appendPreservedCodeNode(
 // inside a quote" bug this transformer exists to fix.
 //
 // Both CODE's import-preservation machinery (fence width, blank-line shape —
-// `$createPreservedCodeNode`) and Cork's nested-quote tree-splicing
+// `$createPreservedCodeNode`) and Corkly's nested-quote tree-splicing
 // (`$mergeIntoQuoteTree` / `$createNestedQuoteChain`) are reused rather than
 // reimplemented, so a quoted code fence lands in the exact same tree shape a
 // quote *line* would, just with a CodeNode leaf instead of a ParagraphNode.
@@ -1348,7 +1348,7 @@ const QUOTE_CODE: MultilineElementTransformer = {
     // Single-line case: opening and closing fence on the same quoted line
     // (`> \`\`\`js code\`\`\` `). Mirrors CODE's own same-line branch above,
     // including dropping the language on this path — an inherited upstream
-    // quirk (see that transformer's header), not a Cork-specific choice.
+    // quirk (see that transformer's header), not a Corkly-specific choice.
     const singleLineEndRegExp = new RegExp(`\`{${fenceLength},}$`);
     if (singleLineEndRegExp.test(afterFence)) {
       const endMatch = afterFence.match(singleLineEndRegExp);
@@ -1487,7 +1487,7 @@ const QUOTE_CODE: MultilineElementTransformer = {
 // a code span's whitespace intact inside its backticks.
 const CODE_TEXT_SENTINEL = "\u200b";
 
-// Reported as a second, separate Cork bug on top of the whitespace one
+// Reported as a second, separate Corkly bug on top of the whitespace one
 // above: selecting text that itself CONTAINS a backtick — even a lone
 // `` ` `` — and toggling inline-code on it saved the file with the
 // selection's own backtick glued directly against the format tag's
@@ -1725,7 +1725,7 @@ const CODE_TEXT: TextMatchTransformer = {
   // — unwraps the fixed single space on each side, but ONLY when the
   // content actually has that exact shape (starts AND ends with a literal
   // space, and isn't made of spaces alone): `fenceLength > 1` alone is NOT
-  // sufficient evidence that Cork's own padding is present — a widened
+  // sufficient evidence that Corkly's own padding is present — a widened
   // fence is also perfectly valid, unpadded CommonMark on its own (e.g. a
   // hand-authored `` ``code`` `` chosen out of habit, no backtick collision
   // forcing it), and blindly stripping edge characters there silently

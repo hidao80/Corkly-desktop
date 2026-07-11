@@ -878,7 +878,7 @@ fn rename_and_write_task(src: &Path, dst: &Path, content: &str) -> CmdResult<()>
 
 /// On-disk stand-in for `/` in a task title. A POSIX filename can never contain
 /// `/` — it is the path separator — yet titles routinely want one ("Frontend/Backend",
-/// "2026/Q2"). Cork keeps the filename as the single source of truth for the title
+/// "2026/Q2"). Corkly keeps the filename as the single source of truth for the title
 /// (there is no separate `title:` frontmatter), so we swap `/` for U+2215 DIVISION
 /// SLASH on disk and swap it back for display. U+2215 is chosen because it is a
 /// near-perfect visual match for `/`, is a legal filename character on every major
@@ -2088,7 +2088,7 @@ mod tests {
         // time, so cross-window watcher events look like
         // "status diff + order diff". `compute_reconciled_orders` only
         // treats "status diff + order *unchanged*" as a stale-order
-        // external edit; both-changed cases — including a sibling Cork
+        // external edit; both-changed cases — including a sibling Corkly
         // window's `move_task` write landing on this window's disk —
         // must be left alone. If this test ever flips to "expect a
         // reposition", multi-window will silently fight itself: window B

@@ -1,6 +1,6 @@
 ## Context
 
-Cork は現在、Tauri v2 のシングルウィンドウ構成で運用されている。`lib.rs::run()` の `setup()` で `"main"` というハードコードされたラベルの `WebviewWindow` を 1 個だけ生成し、`AppState` はプロセス全体で 1 つのワークスペースを `Mutex<Option<PathBuf>>` として保持する。バックエンドの全コマンド (`task::list_tasks`, `workspace::set_workspace_directory`, ...) はこの単一値を経由してファイルシステムを参照しているため、「どのウィンドウから呼ばれたか」という概念がそもそも存在しない。
+Corkly は現在、Tauri v2 のシングルウィンドウ構成で運用されている。`lib.rs::run()` の `setup()` で `"main"` というハードコードされたラベルの `WebviewWindow` を 1 個だけ生成し、`AppState` はプロセス全体で 1 つのワークスペースを `Mutex<Option<PathBuf>>` として保持する。バックエンドの全コマンド (`task::list_tasks`, `workspace::set_workspace_directory`, ...) はこの単一値を経由してファイルシステムを参照しているため、「どのウィンドウから呼ばれたか」という概念がそもそも存在しない。
 
 ワークスペース履歴 (`workspace_history`) は既に `tauri_plugin_store` 経由で `settings.json` に永続化されている (最大 50 件、最近順、`set_workspace_directory` 呼び出しのたびに `prepend_unique_capped` で更新)。`get_workspace_directory` は state が空のときにこの履歴の先頭から `is_dir()` で生存確認しつつ初期ワークスペースを復元する仕組みを持つ。しかしこの復元は「起動時の最初の呼び出し」と「ウィンドウ生成時の自動セレクト」を兼ねており、将来複数ウィンドウを開く文脈では「新規ウィンドウが既存ウィンドウのワークスペースを意図せずクローンする」という不適切な挙動になる。
 
@@ -37,7 +37,7 @@ Tauri capability ファイル (`capabilities/default.json`) は現在 `windows: 
 - Welcome 画面の Recent Workspaces からのコンテキストメニュー (右クリックでエクスプローラで開く等) — 今回は単純クリックのみ
 - マルチウィンドウ起動時の Linux / Windows での見た目調整 (macOS のトラフィックライト位置調整は引き継ぐが、他 OS は既存実装のまま)
 - Tauri の `Manager::singleton_window` のような自前ウィンドウシングルトンガード機構 (今回ユーザーが何枚でも開けてよい)
-- WelcomePage 上での `Cmd+,` (Settings) 対応 — 現状の Cork で `BoardPage` のみが `menu:open-settings` を listen している pre-existing 状態を踏襲。マルチウィンドウで新規ウィンドウが welcome 状態にいる間 `Cmd+,` は無反応になるが、ワークスペースが選ばれるまで Settings 自体に意味がないため許容。専用 issue で別途対応
+- WelcomePage 上での `Cmd+,` (Settings) 対応 — 現状の Corkly で `BoardPage` のみが `menu:open-settings` を listen している pre-existing 状態を踏襲。マルチウィンドウで新規ウィンドウが welcome 状態にいる間 `Cmd+,` は無反応になるが、ワークスペースが選ばれるまで Settings 自体に意味がないため許容。専用 issue で別途対応
 - Recent Workspaces クリックと `set_workspace_directory` 実行の間にディレクトリが削除される TOCTOU の防御 (`set_workspace_directory` の冒頭での `is_dir()` チェック導入) — 別 PR で対応。クリック時点のフィルタ結果と実態がほぼ一致する前提を許容
 
 ## Decisions
@@ -167,15 +167,15 @@ BoardPage が dir をキーに remount → useWorkspace が起動
 
 ### 13. Dock リオープン (`RunEvent::Reopen`) は履歴自動復元付きで新規ウィンドウを開く
 
-macOS では、すべてのウィンドウを閉じたあともアプリプロセスは生存し続ける (`Window > Close Window` は Tauri 標準の `close_window()` ハンドラで、最後の 1 枚を閉じてもアプリ終了はしない)。ユーザーが Dock の Cork アイコンをクリックすると Tauri は `RunEvent::Reopen { has_visible_windows: false, .. }` を発火する。これに何も応答しないと、Cork は生きているのに何も画面に出ない状態が続いてしまう (macOS 規約違反)。
+macOS では、すべてのウィンドウを閉じたあともアプリプロセスは生存し続ける (`Window > Close Window` は Tauri 標準の `close_window()` ハンドラで、最後の 1 枚を閉じてもアプリ終了はしない)。ユーザーが Dock の Corkly アイコンをクリックすると Tauri は `RunEvent::Reopen { has_visible_windows: false, .. }` を発火する。これに何も応答しないと、Corkly は生きているのに何も画面に出ない状態が続いてしまう (macOS 規約違反)。
 
 **選択肢:**
 
-| 案                                                   | 判断                                                                                                                                                                       |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A. 履歴自動復元付きの新規ウィンドウを開く (採用)** | 起動と Reopen を「同じ意味」(= ユーザーがアプリを使い始める瞬間) として一貫させる。ユーザーは「Cork を開いたら直前の続きから」というメンタルモデルで両者を区別しなくてよい |
-| B. WelcomePage 状態の新規ウィンドウを開く            | `File > New Window` と同じ挙動になり、Reopen は「明示的な新ウィンドウ操作」と同義化する。起動と Reopen で挙動が乖離するため、ユーザーが意図せず履歴を失った気持ちになる    |
-| C. 何もしない (現状維持)                             | macOS 規約に反する。Dock からアプリを呼び戻せない問題が残る                                                                                                                |
+| 案                                                   | 判断                                                                                                                                                                         |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. 履歴自動復元付きの新規ウィンドウを開く (採用)** | 起動と Reopen を「同じ意味」(= ユーザーがアプリを使い始める瞬間) として一貫させる。ユーザーは「Corkly を開いたら直前の続きから」というメンタルモデルで両者を区別しなくてよい |
+| B. WelcomePage 状態の新規ウィンドウを開く            | `File > New Window` と同じ挙動になり、Reopen は「明示的な新ウィンドウ操作」と同義化する。起動と Reopen で挙動が乖離するため、ユーザーが意図せず履歴を失った気持ちになる      |
+| C. 何もしない (現状維持)                             | macOS 規約に反する。Dock からアプリを呼び戻せない問題が残る                                                                                                                  |
 
 **採用理由:** ユーザーが「アプリを開く」という単一の行為に対して、起動経路 (cold start / Dock 復活) によって挙動が違うのは混乱を招く。両者とも履歴復元を行うことで「最後に見ていたものに戻る」というメンタルモデルが成立する。
 
@@ -238,7 +238,7 @@ if prev_status != &task.status && order_unchanged {
 }
 ```
 
-Cork の内部書き込みコマンドはすべて status と order の両方を frontmatter に書き込む契約になっており (`move_task` は引数として `status, order` を受け取って両方更新、`useWorkspaceTasks.updateTask` も status 変更時に `Math.min(...) - 1` で新 order を必ず付与)、ウィンドウ B 側のスナップショットと比較すると order も同時に diff になるため `order_unchanged = false` で reconcile はスキップする。
+Corkly の内部書き込みコマンドはすべて status と order の両方を frontmatter に書き込む契約になっており (`move_task` は引数として `status, order` を受け取って両方更新、`useWorkspaceTasks.updateTask` も status 変更時に `Math.min(...) - 1` で新 order を必ず付与)、ウィンドウ B 側のスナップショットと比較すると order も同時に diff になるため `order_unchanged = false` で reconcile はスキップする。
 
 この invariant は **多窓体験の正しさをまるごと支える前提**になっている。将来、内部書き込みコマンドを追加 / 変更するときに「status だけ書いて order は触らない」実装を入れると、多窓で同期されたすべての他ウィンドウが当該タスクを「先頭移動」と誤判定して書き戻すバグが入る。これは Rust 側の単体テストでは検知しづらいクラスのバグなので、spec の Requirement として明文化する (`specs/multi-window/spec.md` に「内部書き込みは status と order を必ず同時に書く」要件)。
 
@@ -256,8 +256,8 @@ Cork の内部書き込みコマンドはすべて status と order の両方を
 | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AppState` API のシグネチャ変更によりすべての `#[tauri::command]` の本体が変わる (一括書き換え)                               | コンパイラが救済してくれる: 1 引数追加し忘れたコマンドは型エラーになるため、手動レビューより検出が確実。テストでカバーされているヘルパー (`parse_workspace_history`, `update_workspaces_map`, `sanitize_title` ...) のテストは引数変更を伴わない (純関数のため)、影響を受けるのは `AppState` のテストだけ               |
 | 既存ユーザー: 既存のグローバル状態のクセ (settings.json → `workspace_history`) との互換性                                     | 永続データ (`settings.json`) のスキーマは無変更。`workspace_history` の読み書き経路は既存と同じヘルパー (`parse_workspace_history` / `prepend_unique_capped` / `history_to_json`) をそのまま使う                                                                                                                        |
-| 2 つのウィンドウが同じワークスペースを開いた場合、両方が同じ `.md` ファイルを編集して競合する                                 | 既に「Cork 外のエディタが編集しても外部編集として検出する」フレームワーク (`reconcile_external_status_changes` + `useWorkspaceWatcher`) が存在する。`last_reported` を per-window で持つ設計のため、ウィンドウ B の書き込みはウィンドウ A から見て「外部編集」として正しく検出される                                    |
-| 同一ワークスペース 2 窓状態でドラッグ移動が他方の reconcile によって「ステータス先頭に強制移動」される                        | Decision 14 で詳述。Cork 内部書き込みは status と order を必ず同時に書き込み、reconcile は (status diff AND order_unchanged) の AND 条件のみで反応するため、現コードでは誤発火しない。invariant を spec の Requirement として明文化、将来のコマンド追加でこの規約が破られないよう gate する                             |
+| 2 つのウィンドウが同じワークスペースを開いた場合、両方が同じ `.md` ファイルを編集して競合する                                 | 既に「Corkly 外のエディタが編集しても外部編集として検出する」フレームワーク (`reconcile_external_status_changes` + `useWorkspaceWatcher`) が存在する。`last_reported` を per-window で持つ設計のため、ウィンドウ B の書き込みはウィンドウ A から見て「外部編集」として正しく検出される                                  |
+| 同一ワークスペース 2 窓状態でドラッグ移動が他方の reconcile によって「ステータス先頭に強制移動」される                        | Decision 14 で詳述。Corkly 内部書き込みは status と order を必ず同時に書き込み、reconcile は (status diff AND order_unchanged) の AND 条件のみで反応するため、現コードでは誤発火しない。invariant を spec の Requirement として明文化、将来のコマンド追加でこの規約が破られないよう gate する                           |
 | ウィンドウクロスでのキャッシュ整合性 (ウィンドウ A の書き込みがウィンドウ B のキャッシュに反映されない懸念)                   | `useWorkspaceWatcher` (フロントエンド) が watcher 経由で `reconcile_external_status_changes` を必ず呼び、reconcile 内部で自ウィンドウの `tasks_cache` を `invalidate_cache()` してディスクから fresh 再読込する設計 (`reconcile_external_status_changes` 内部)。per-window cache のままで cross-window 整合性は保たれる |
 | Reopen ハンドラ内の build → seed 順序ミスでフロントエンドが None を読むレース                                                 | Decision 13 で seed → build の順を実装上強制。`state.next_window_label()` はラベル文字列をプロセス内で確定できるため、build に先立つ AppState 初期化が可能                                                                                                                                                              |
 | Dock リオープン時に `Cmd+H` 隠し状態や `Cmd+M` 最小化状態でも新ウィンドウが生成される誤動作                                   | Decision 13 で `app.webview_windows().is_empty()` 分岐により、隠れているだけのウィンドウは新規生成せず `show()` + `unminimize()` + `set_focus()` で復帰。`applicationShouldHandleReopen:hasVisibleWindows:` の Apple API セマンティクスに準拠                                                                           |

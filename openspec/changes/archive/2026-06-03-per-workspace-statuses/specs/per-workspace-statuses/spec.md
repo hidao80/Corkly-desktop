@@ -2,18 +2,18 @@
 
 ### Requirement: statuses 設定は作業ディレクトリ直下の `.cork.json` に保存される
 
-statuses 設定はグローバル `settings.json` ではなく、現在選択中の作業ディレクトリ直下の `.cork.json` ファイルに保存される。`.cork.json` のスキーマは JSON オブジェクト形式で、`statuses` キーに `{ "label": string }` 要素の配列を保持する。Cork は statuses 設定の永続化先として `.cork.json` のみを使用し、他のパスを使用してはならない (MUST)。
+statuses 設定はグローバル `settings.json` ではなく、現在選択中の作業ディレクトリ直下の `.cork.json` ファイルに保存される。`.cork.json` のスキーマは JSON オブジェクト形式で、`statuses` キーに `{ "label": string }` 要素の配列を保持する。Corkly は statuses 設定の永続化先として `.cork.json` のみを使用し、他のパスを使用してはならない (MUST)。
 
 #### Scenario: 作業ディレクトリ A と B で独立した statuses 構成を持てる
 
 - **GIVEN** ユーザーが作業ディレクトリ A で `Backlog / Doing / Done` を、作業ディレクトリ B で `Todo / In Progress / Review / Done` を保存している
-- **WHEN** ユーザーが Cork を作業ディレクトリ A に切り替える
+- **WHEN** ユーザーが Corkly を作業ディレクトリ A に切り替える
 - **THEN** Board と設定パネルには A の `Backlog / Doing / Done` が表示される
 - **AND** B に切り替えると Board と設定パネルには `Todo / In Progress / Review / Done` が表示される
 
 #### Scenario: `.cork.json` のスキーマ
 
-- **WHEN** Cork が statuses を作業ディレクトリに永続化する
+- **WHEN** Corkly が statuses を作業ディレクトリに永続化する
 - **THEN** 作業ディレクトリ直下に `.cork.json` というファイルが作成され、内容は `{"statuses": [{"label": "..."}, ...]}` 形式の JSON である
 - **AND** ファイルは人間が読める 2 スペースインデントの整形 JSON で書かれ、末尾改行を含む
 
@@ -29,8 +29,8 @@ statuses 設定はグローバル `settings.json` ではなく、現在選択中
 
 #### Scenario: 既存ユーザーのグローバル `statuses` 設定は無視される
 
-- **GIVEN** 旧バージョンの Cork を使っていたユーザーのグローバル `settings.json` に過去の `statuses` 配列が残っている
-- **WHEN** 新バージョンの Cork が起動する
+- **GIVEN** 旧バージョンの Corkly を使っていたユーザーのグローバル `settings.json` に過去の `statuses` 配列が残っている
+- **WHEN** 新バージョンの Corkly が起動する
 - **THEN** その旧データは読み込まれず、`.cork.json` が存在しなければフロントエンドのデフォルト `Todo / Doing / Done` が表示される
 
 ### Requirement: `get_statuses` は作業ディレクトリの `.cork.json` を読み出す
@@ -116,32 +116,32 @@ frontmatter に `status` を持たない `.md` ファイルにマッピングす
 
 `useWorkspace` の watch ループは作業ディレクトリ直下の `.cork.json` の変更・作成・削除イベントを検知しなければならず (MUST)、検知時に `loadStatuses` と `loadTasks` の両方を再実行しなければならない (MUST)。
 
-#### Scenario: Cork 外のエディタで `.cork.json` を編集する
+#### Scenario: Corkly 外のエディタで `.cork.json` を編集する
 
-- **GIVEN** ユーザーが Cork を開いた状態で、別エディタで作業ディレクトリの `.cork.json` を書き換えて保存する
+- **GIVEN** ユーザーが Corkly を開いた状態で、別エディタで作業ディレクトリの `.cork.json` を書き換えて保存する
 - **WHEN** ファイル変更イベントが発火する
 - **THEN** 設定パネルと Board の statuses 表示は新しい `.cork.json` の内容に追従して更新される
 - **AND** デフォルトステータス変更によって所属列が変わるタスクの表示も更新される
 
 #### Scenario: `.cork.json` をエディタで削除する
 
-- **GIVEN** Cork が開いた状態で、ユーザーが `.cork.json` を削除する
+- **GIVEN** Corkly が開いた状態で、ユーザーが `.cork.json` を削除する
 - **WHEN** ファイル削除イベントが発火する
-- **THEN** Cork は `get_statuses` の応答が空配列になるためフロントエンドの `DEFAULT_STATUSES`（`Todo / Doing / Done`）に戻る
+- **THEN** Corkly は `get_statuses` の応答が空配列になるためフロントエンドの `DEFAULT_STATUSES`（`Todo / Doing / Done`）に戻る
 
 #### Scenario: `.md` ファイル変更時は statuses を再ロードしない
 
-- **GIVEN** Cork が開いた状態で、ユーザーが `.md` ファイルだけを編集する（`.cork.json` には触れない）
+- **GIVEN** Corkly が開いた状態で、ユーザーが `.md` ファイルだけを編集する（`.cork.json` には触れない）
 - **WHEN** ファイル変更イベントが発火する
 - **THEN** `loadTasks` のみが実行され、`loadStatuses` は実行されない
 
 ### Requirement: 作業ディレクトリ切替時に対応する `.cork.json` を読み直す
 
-`useWorkspace.dir` が変化した時、Cork は新しいディレクトリの `.cork.json` から statuses を読み直さなければならない (MUST)。ファイル監視ループも新しいディレクトリを対象とした watch に切り替えなければならない (MUST)。
+`useWorkspace.dir` が変化した時、Corkly は新しいディレクトリの `.cork.json` から statuses を読み直さなければならない (MUST)。ファイル監視ループも新しいディレクトリを対象とした watch に切り替えなければならない (MUST)。
 
 #### Scenario: 設定パネルで別の作業ディレクトリに切り替える
 
 - **GIVEN** ユーザーが作業ディレクトリ A を開いて statuses が `[Backlog, Done]` 表示されている
 - **WHEN** 設定パネルからディレクトリ B に切り替える
-- **THEN** Cork は B の `.cork.json` を読み直し、Board と設定パネルが B の statuses 構成で再描画される
+- **THEN** Corkly は B の `.cork.json` を読み直し、Board と設定パネルが B の statuses 構成で再描画される
 - **AND** ファイル監視ループも B を対象とした watch に切り替わる

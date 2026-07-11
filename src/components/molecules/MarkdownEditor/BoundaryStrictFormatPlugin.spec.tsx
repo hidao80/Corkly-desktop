@@ -116,7 +116,7 @@ describe.each(BOUNDARY_STRICT_CASES)(
         expect(readInlineFormats(root.getChildAtIndex(1), format)).toEqual([["b", false]]);
       });
 
-      // Cork's `$readMarkdown` uses `shouldPreserveNewLines: true`, so root
+      // Corkly's `$readMarkdown` uses `shouldPreserveNewLines: true`, so root
       // paragraphs join with a single `\n` (one Enter = one paragraph break);
       // `\n\n` is reserved for an explicit blank paragraph between them.
       expect($readMarkdown(editor)).toBe(`${delimiter}a${delimiter}\nb`);

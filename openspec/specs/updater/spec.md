@@ -2,18 +2,18 @@
 
 ## Purpose
 
-Cork にアプリ起動中の自走更新機能を組み込み、ユーザーが手動 DMG 再ダウンロードや `brew upgrade` を実行することなく最新リリースへ移行できるようにする。Apple Developer Program に加入しない方針のため、minisign による独立署名（`tauri-plugin-updater` 内蔵）と Tauri ビルド時の ad-hoc codesign の二段構えで真正性検証と macOS Apple Silicon の起動要件を両立する。UI は `organisms/shell/UpdaterToast` が `useUpdater` の state machine を sonner にブリッジし、`available → downloading → installing → (relaunch or error)` を右下の同一 toast 内で in-place 遷移させる。自動チェックは設定として公開せず常時有効、`main` Window で起動時 1 回のみ走り、複数 Window 開いた状態でも重複しない。配信は GitHub Releases 上の静的 `latest.json` 単一エンドポイント、Homebrew Cask は `auto_updates true` を宣言して in-app updater との二重更新を回避する。
+Corkly にアプリ起動中の自走更新機能を組み込み、ユーザーが手動 DMG 再ダウンロードや `brew upgrade` を実行することなく最新リリースへ移行できるようにする。Apple Developer Program に加入しない方針のため、minisign による独立署名（`tauri-plugin-updater` 内蔵）と Tauri ビルド時の ad-hoc codesign の二段構えで真正性検証と macOS Apple Silicon の起動要件を両立する。UI は `organisms/shell/UpdaterToast` が `useUpdater` の state machine を sonner にブリッジし、`available → downloading → installing → (relaunch or error)` を右下の同一 toast 内で in-place 遷移させる。自動チェックは設定として公開せず常時有効、`main` Window で起動時 1 回のみ走り、複数 Window 開いた状態でも重複しない。配信は GitHub Releases 上の静的 `latest.json` 単一エンドポイント、Homebrew Cask は `auto_updates true` を宣言して in-app updater との二重更新を回避する。
 
 ## Requirements
 
 ### Requirement: アプリは起動時に最新リリースを自動チェックする
 
-Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす Window 上で `useUpdater` フックがマウントされた直後の `useEffect` 1 回に限り、`@tauri-apps/plugin-updater` の `check()` を呼び出して `latest.json` を取得し、内部で SemVer 比較しなければならない (MUST)。`latest.json` の `version` が現バージョンより新しい場合に限り、`main` Window の sonner toast スタックに更新通知を表示しなければならない (MUST)。`main` 以外のラベル (`workspace-<n>`) を持つ Window では自動チェックを起動してはならない (MUST NOT、ただし手動チェックは除く)。自動チェックの ON/OFF はユーザー設定として公開せず、常に有効でなければならない (MUST)。
+Corkly プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす Window 上で `useUpdater` フックがマウントされた直後の `useEffect` 1 回に限り、`@tauri-apps/plugin-updater` の `check()` を呼び出して `latest.json` を取得し、内部で SemVer 比較しなければならない (MUST)。`latest.json` の `version` が現バージョンより新しい場合に限り、`main` Window の sonner toast スタックに更新通知を表示しなければならない (MUST)。`main` 以外のラベル (`workspace-<n>`) を持つ Window では自動チェックを起動してはならない (MUST NOT、ただし手動チェックは除く)。自動チェックの ON/OFF はユーザー設定として公開せず、常に有効でなければならない (MUST)。
 
 #### Scenario: 自動チェックで最新バージョンあり
 
 - **WHEN** `main` Window で起動し、`latest.json` の `version` が現バージョンより新しい
-- **THEN** 起動から数秒以内に「Cork x.y.z is available」の sonner toast (action ボタン `Install and Restart` + 閉じる X + `Release notes ↗` リンク) が右下に表示される
+- **THEN** 起動から数秒以内に「Corkly x.y.z is available」の sonner toast (action ボタン `Install and Restart` + 閉じる X + `Release notes ↗` リンク) が右下に表示される
 - **AND** toast は `duration: Infinity` で自動クローズしない
 
 #### Scenario: 自動チェックで最新
@@ -33,7 +33,7 @@ Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす
 - **WHEN** 既にアプリプロセスが稼働しており、`cork <dir>` または `File > New Window` 等で追加 Window (`workspace-<n>` ラベル) を開いた
 - **THEN** その Window の `useUpdater` はマウント時にラベルが `main` 以外と判定するため、`check()` を一切呼ばない
 - **AND** 既存の `main` Window で auto-check 済みの場合の toast も追加 Window には表示されない
-- **AND** ただし `Cork > Check for Updates...` メニューによる手動チェックはこの追加 Window でも引き続き使用可能
+- **AND** ただし `Corkly > Check for Updates...` メニューによる手動チェックはこの追加 Window でも引き続き使用可能
 
 #### Scenario: `main` Window が auto-check 完了前に閉じられた
 
@@ -43,17 +43,17 @@ Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす
 
 ### Requirement: ユーザーは手動で更新チェックを実行できる
 
-ユーザーは macOS メニュー `Cork > Check for Updates...`（`Cork` サブメニューの `about` 直後に配置）から、手動チェックを任意のタイミングで実行できなければならない (MUST)。手動チェックは自動チェックと異なり、結果が「最新」「更新あり」「エラー」のいずれであっても UI で明示的にフィードバックしなければならない (MUST)。
+ユーザーは macOS メニュー `Corkly > Check for Updates...`（`Corkly` サブメニューの `about` 直後に配置）から、手動チェックを任意のタイミングで実行できなければならない (MUST)。手動チェックは自動チェックと異なり、結果が「最新」「更新あり」「エラー」のいずれであっても UI で明示的にフィードバックしなければならない (MUST)。
 
 #### Scenario: 手動チェックで更新あり
 
-- **WHEN** ユーザーがメニュー `Cork > Check for Updates...` を選択し、`latest.json` の `version` が現バージョンより新しい
+- **WHEN** ユーザーがメニュー `Corkly > Check for Updates...` を選択し、`latest.json` の `version` が現バージョンより新しい
 - **THEN** フォーカスされた Window に自動チェックと同じ「Update available」toast が表示される
 
 #### Scenario: 手動チェックで最新
 
 - **WHEN** ユーザーが手動チェックを実行し、現バージョンが最新
-- **THEN** 「Cork is up to date.」を伝える sonner toast (info レベル、duration 4 秒で自動クローズ) が表示される
+- **THEN** 「Corkly is up to date.」を伝える sonner toast (info レベル、duration 4 秒で自動クローズ) が表示される
 - **AND** action ボタン無し、close button 無し
 
 #### Scenario: 手動チェックでネットワークエラー
@@ -63,7 +63,7 @@ Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす
 
 #### Scenario: メニュー項目のフォーカス Window 選定
 
-- **WHEN** 複数 Window が開いている状態で `Cork > Check for Updates...` を選択する
+- **WHEN** 複数 Window が開いている状態で `Corkly > Check for Updates...` を選択する
 - **THEN** その時点でフォーカスを持っている Window に対してチェック開始イベントが emit される (既存の `menu.rs::focused_webview_window` と同じパターン)
 - **AND** どの Window もフォーカスを持たない場合はイベントが無視される (`settings` / `new_task` と同じ挙動)
 
@@ -76,12 +76,12 @@ Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす
 - **WHEN** ユーザーが `Install and Restart` をクリックする
 - **THEN** sonner の action onClick handler は `event.preventDefault()` を呼び、sonner のデフォルト自動 dismiss を抑制する
 - **AND** その後 `useUpdater.installAndRestart()` が発火し、state が `downloading` に遷移する
-- **AND** useEffect 経由で同じ toast id に `toast.loading(...)` が呼ばれ、toast の中身が「Downloading Cork x.y.z」+ 進捗バーに in-place 更新される
+- **AND** useEffect 経由で同じ toast id に `toast.loading(...)` が呼ばれ、toast の中身が「Downloading Corkly x.y.z」+ 進捗バーに in-place 更新される
 
 #### Scenario: ダウンロード進捗表示
 
 - **WHEN** ダウンロード中（state が `downloading`）
-- **THEN** toast title は「Downloading Cork x.y.z」
+- **THEN** toast title は「Downloading Corkly x.y.z」
 - **AND** description には determinate な progress bar (`bg-cork-accent` の塗りバー) + 「2.5 MB / 8 MB · 31%」形式の数値テキスト
 - **AND** 数値テキストは `tabular-nums` で各桁等幅レンダリング、`text-cork-muted text-[11px]` で控えめな見た目
 - **AND** sonner の `toast.loading()` のデフォルトスピナーが描画される
@@ -90,7 +90,7 @@ Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす
 #### Scenario: インストール段階の表示
 
 - **WHEN** ダウンロード完了直後（plugin が `Finished` イベントを emit）
-- **THEN** state が `installing` に遷移し、toast title は引き続き「Downloading Cork x.y.z」（連続体験を保つため title は変えない）
+- **THEN** state が `installing` に遷移し、toast title は引き続き「Downloading Corkly x.y.z」（連続体験を保つため title は変えない）
 - **AND** description が「Restarting shortly…」（`text-cork-muted text-[11px]` スタイル）に更新される
 
 #### Scenario: 再起動
@@ -112,11 +112,11 @@ Cork プロセスは、`getCurrentWebviewWindow().label === "main"` を満たす
 - **WHEN** ユーザーが `Update available` toast の close button (X) をクリックする
 - **THEN** sonner が toast を dismiss し、`onDismiss` callback で `useUpdater.dismiss()` が呼ばれ、state が `idle` に戻る
 - **AND** 同プロセス中は自動チェック由来の更新通知が再表示されない (次回起動時の自動チェックで再度通知される)
-- **AND** ただし手動チェック (`Cork > Check for Updates...`) からの再表示は可能
+- **AND** ただし手動チェック (`Corkly > Check for Updates...`) からの再表示は可能
 
 ### Requirement: 更新成果物は minisign で署名され公開鍵で検証される
 
-CI でビルドされる `Cork.app.tar.gz` は、`TAURI_SIGNING_PRIVATE_KEY` (minisign 秘密鍵) と `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` を環境変数として受け取った `tauri build` が同名の `.sig` ファイル (base64 minisign) を生成し、release アセットとしてアップロードされなければならない (MUST)。クライアント側は `tauri.conf.json` の `plugins.updater.pubkey` にハードコードされた公開鍵で `.sig` を検証しなければならない (MUST)。検証失敗時はインストールを中止しなければならず (MUST)、`.app` バンドルを置き換えてはならない (MUST NOT)。
+CI でビルドされる `Corkly.app.tar.gz` は、`TAURI_SIGNING_PRIVATE_KEY` (minisign 秘密鍵) と `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` を環境変数として受け取った `tauri build` が同名の `.sig` ファイル (base64 minisign) を生成し、release アセットとしてアップロードされなければならない (MUST)。クライアント側は `tauri.conf.json` の `plugins.updater.pubkey` にハードコードされた公開鍵で `.sig` を検証しなければならない (MUST)。検証失敗時はインストールを中止しなければならず (MUST)、`.app` バンドルを置き換えてはならない (MUST NOT)。
 
 #### Scenario: 正規署名
 
@@ -144,22 +144,22 @@ CI でビルドされる `Cork.app.tar.gz` は、`TAURI_SIGNING_PRIVATE_KEY` (mi
 - **WHEN** ユーザーが in-app updater で `Install and Restart` を選択し、`.app` バンドルが新バージョンに置き換わって `relaunch()` した
 - **THEN** macOS の Gatekeeper / quarantine プロンプトは表示されない
 - **AND** アプリは通常通り起動する
-- **AND** 新 `.app` には ad-hoc 署名が保持されている (`codesign --display Cork.app` で `Signature=adhoc` 相当が確認できる)
+- **AND** 新 `.app` には ad-hoc 署名が保持されている (`codesign --display Corkly.app` で `Signature=adhoc` 相当が確認できる)
 
-#### Scenario: 同梱 CLI (`cork-cli`) の整合性
+#### Scenario: 同梱 CLI (`cork`) の整合性
 
-- **WHEN** 自走更新後に Homebrew Cask のシンボリックリンク `$(brew --prefix)/bin/cork` が指す `Cork.app/Contents/MacOS/cork-cli` を実行する
-- **THEN** 新バージョンの `cork-cli` が起動する (シンボリックリンクのターゲットパスが不変であるため自動的に新バイナリへ繋がる)
+- **WHEN** 自走更新後に Homebrew Cask のシンボリックリンク `$(brew --prefix)/bin/cork` が指す `Corkly.app/Contents/MacOS/cork` を実行する
+- **THEN** 新バージョンの `cork` が起動する (シンボリックリンクのターゲットパスが不変であるため自動的に新バイナリへ繋がる)
 - **AND** `cork --version` が新バージョン番号を返す (`cli/build.rs` が `package.json` の version を埋め込んでいるため)
 
 ### Requirement: 配信エンドポイントは GitHub Releases 上の静的 `latest.json`
 
-`tauri-plugin-updater` の endpoint は `https://github.com/koki-develop/Cork/releases/latest/download/latest.json` 単一でなければならない (MUST)。`latest.json` は CI (`release-please.yml` の `release` ジョブ) で生成され、その release にアップロードされなければならない (MUST)。`platforms` キーは現状 `darwin-aarch64` のみを含まなければならない (MUST、現 Cask が aarch64-only のため)。
+`tauri-plugin-updater` の endpoint は `https://github.com/koki-develop/Corkly/releases/latest/download/latest.json` 単一でなければならない (MUST)。`latest.json` は CI (`release-please.yml` の `release` ジョブ) で生成され、その release にアップロードされなければならない (MUST)。`platforms` キーは現状 `darwin-aarch64` のみを含まなければならない (MUST、現 Cask が aarch64-only のため)。
 
 #### Scenario: latest.json の構造
 
 - **WHEN** クライアントが endpoint URL に GET する
-- **THEN** レスポンスは `{ "version": "x.y.z", "notes": "...", "pub_date": "<ISO 8601>", "platforms": { "darwin-aarch64": { "signature": "<base64 minisign>", "url": "https://github.com/koki-develop/Cork/releases/download/v<x.y.z>/Cork_<x.y.z>_aarch64.app.tar.gz" } } }` のスキーマに従う
+- **THEN** レスポンスは `{ "version": "x.y.z", "notes": "...", "pub_date": "<ISO 8601>", "platforms": { "darwin-aarch64": { "signature": "<base64 minisign>", "url": "https://github.com/koki-develop/Corkly/releases/download/v<x.y.z>/Corkly_<x.y.z>_aarch64.app.tar.gz" } } }` のスキーマに従う
 - **AND** `version` は SemVer 形式 (`x.y.z`)
 - **AND** `signature` は対応する `.app.tar.gz.sig` の中身そのまま (URL ではなく文字列)
 - **AND** `notes` は release-please が release body に書き込んだ CHANGELOG エントリ (CI で `gh release view --json body --jq .body` 経由で取得)
@@ -180,7 +180,7 @@ CI でビルドされる `Cork.app.tar.gz` は、`TAURI_SIGNING_PRIVATE_KEY` (mi
 
 ### Requirement: Homebrew Cask は in-app updater と共存する
 
-`scripts/build-cask.ts` の Cask 文字列に `auto_updates true` を追加しなければならない (MUST)。これにより bare `brew upgrade` は Cork の `.app` の `CFBundleVersion` を読んでローカルが古い場合のみ更新を実行する (Homebrew/brew#21882 以降の挙動)。`brew upgrade --cask cork` (名前指定) は従来通り常に更新を実行できなければならない (MUST)。Cask の `preflight` (ad-hoc 再 codesign + xattr 除去) は DMG 直インストール経路の保険として保持しなければならない (MUST)。
+`scripts/build-cask.ts` の Cask 文字列に `auto_updates true` を追加しなければならない (MUST)。これにより bare `brew upgrade` は Corkly の `.app` の `CFBundleVersion` を読んでローカルが古い場合のみ更新を実行する (Homebrew/brew#21882 以降の挙動)。`brew upgrade --cask cork` (名前指定) は従来通り常に更新を実行できなければならない (MUST)。Cask の `preflight` (ad-hoc 再 codesign + xattr 除去) は DMG 直インストール経路の保険として保持しなければならない (MUST)。
 
 #### Scenario: Cask に auto_updates true が含まれる
 
@@ -189,9 +189,9 @@ CI でビルドされる `Cork.app.tar.gz` は、`TAURI_SIGNING_PRIVATE_KEY` (mi
 
 #### Scenario: in-app updater 後の brew upgrade
 
-- **WHEN** ユーザーが Cork を in-app updater で 0.16.0 に上げた後、`brew upgrade` (bare) を実行する
-- **THEN** Brew は `Cork.app` の bundle version を 0.16.0 と認識し、Cask の version と一致するため何も再ダウンロードしない
-- **AND** ローカルの `Cork.app` は破壊されない (in-app 更新の成果がそのまま残る)
+- **WHEN** ユーザーが Corkly を in-app updater で 0.16.0 に上げた後、`brew upgrade` (bare) を実行する
+- **THEN** Brew は `Corkly.app` の bundle version を 0.16.0 と認識し、Cask の version と一致するため何も再ダウンロードしない
+- **AND** ローカルの `Corkly.app` は破壊されない (in-app 更新の成果がそのまま残る)
 
 #### Scenario: brew upgrade --cask cork (名前指定)
 

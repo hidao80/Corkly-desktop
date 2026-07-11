@@ -1,6 +1,6 @@
 ## Context
 
-Cork のボードは現在、ワークスペース内の全 `.md` ファイル (タスク) をカンバン表示する。タスク数が増加すると目的のタスクを目視で探すのが困難になる。Linear / GitHub Projects などモダンなカンバンツールはすべて検索機能を持ち、タイトルに対するあいまい検索が標準的な UX となっている。
+Corkly のボードは現在、ワークスペース内の全 `.md` ファイル (タスク) をカンバン表示する。タスク数が増加すると目的のタスクを目視で探すのが困難になる。Linear / GitHub Projects などモダンなカンバンツールはすべて検索機能を持ち、タイトルに対するあいまい検索が標準的な UX となっている。
 
 現状の関連実装:
 
@@ -8,7 +8,7 @@ Cork のボードは現在、ワークスペース内の全 `.md` ファイル (
 - `Task` 型: `id` / `title` / `status` / `body` / `order` / `tags`。`title` はファイル名 (stem) から取得される検索対象フィールド。
 - `useWorkspace`: `src/hooks/useWorkspace.ts`。`tasks` ステートを保持し、`loadTasks` で `listTasks()` を呼ぶ。ファイル監視による自動リロードもこのフックが担当。
 - `AppHeader`: `src/components/organisms/shell/AppHeader.tsx`。PathDisplay + タスク数 + Settings ボタンを横一列に配置。
-- スタイル: Cork はダークテーマ (`cork-bg: #020617`, `cork-surface: #0f172a`, `cork-elevated: #1e293b`, `cork-border: #334155`, `cork-muted: #94a3b8`, `cork-text: #f1f5f9`, `cork-accent: #6366f1`)。
+- スタイル: Corkly はダークテーマ (`cork-bg: #020617`, `cork-surface: #0f172a`, `cork-elevated: #1e293b`, `cork-border: #334155`, `cork-muted: #94a3b8`, `cork-text: #f1f5f9`, `cork-accent: #6366f1`)。
 
 ## Goals / Non-Goals
 
@@ -113,7 +113,7 @@ SearchBar 導入後:
 </header>
 ```
 
-**SearchBar デザイン (Cork デザイントークン準拠):**
+**SearchBar デザイン (Corkly デザイントークン準拠):**
 
 | プロパティ       | 値                                                     |
 | ---------------- | ------------------------------------------------------ |
@@ -163,7 +163,7 @@ SearchBar は:
 - 単一責務 (検索文字列入力)
 - `@/api` / `@/hooks` への依存なし
 - マウス・キーボード操作をサポート
-- Cork のデザイントークンに準拠したスタイル
+- Corkly のデザイントークンに準拠したスタイル
 
 ### データフロー
 
@@ -194,7 +194,7 @@ SearchBar は:
 - `Escape` キー押下: 入力をクリアしフォーカスを外す (`(e.target as HTMLInputElement).blur()`)
 - 入力欄右端にクリアボタン (`X` アイコン) は表示しない (type="search" のブラウザ標準クリアボタンに任せる。あるいは非表示にして Escape のみ)
 
-方針: **Escape でクリア + blur** を基本とし、ブラウザ標準の `search` 型の ✕ ボタンは `appearance: none` で隠す。Cork は Tauri (WebView) 上で動作するため、標準クリアボタンの見た目が統一されない。
+方針: **Escape でクリア + blur** を基本とし、ブラウザ標準の `search` 型の ✕ ボタンは `appearance: none` で隠す。Corkly は Tauri (WebView) 上で動作するため、標準クリアボタンの見た目が統一されない。
 
 ### AppState のタスクキャッシュ
 

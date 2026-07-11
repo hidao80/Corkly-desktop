@@ -1,6 +1,6 @@
 ## Context
 
-Currently, Cork tasks are displayed as Kanban cards that show only a title and a 2-line body preview. There is no way to view the full task body or edit it from within the app. The existing `CreateTaskDialog` (in `organisms/board/`) shows the pattern for modal-based task interaction, and the `Modal` component (in `organisms/shell/`) provides a reusable modal shell.
+Currently, Corkly tasks are displayed as Kanban cards that show only a title and a 2-line body preview. There is no way to view the full task body or edit it from within the app. The existing `CreateTaskDialog` (in `organisms/board/`) shows the pattern for modal-based task interaction, and the `Modal` component (in `organisms/shell/`) provides a reusable modal shell.
 
 The app already has:
 
@@ -113,7 +113,7 @@ After any save, `loadTasks()` is called to reconcile with disk. If the title cha
 
 ## Design System Integration
 
-The UI follows the existing Cork design tokens already defined in `style.css`:
+The UI follows the existing Corkly design tokens already defined in `style.css`:
 
 | Token           | Value     | Usage                        |
 | --------------- | --------- | ---------------------------- |

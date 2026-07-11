@@ -92,8 +92,8 @@ const CORK_LANGUAGE_FRIENDLY_NAMES: Record<string, string> = {
 // imported (`ruby`→`rb`, `kotlin`→`kt`/`kts`, `csharp`→`cs`/`dotnet`,
 // `bash`→`sh`/`shell`, `yaml`→`yml`, `docker`→`dockerfile`) — that's enough
 // for `CORK_BUNDLED_LANGUAGES` (below) to highlight them correctly, since it
-// reads `Prism.languages` directly. But `normalizeCorkCodeLanguage` /
-// `getCorkLanguageFriendlyName` never touch `Prism.languages` — they only
+// reads `Prism.languages` directly. But `normalizeCorklyCodeLanguage` /
+// `getCorklyLanguageFriendlyName` never touch `Prism.languages` — they only
 // resolve through this table — so every one of those Prism-side aliases
 // still needs its own entry here, or a fence written as ` ```cs ` would
 // highlight fine yet show the raw "cs" chip instead of "C#".
@@ -142,7 +142,7 @@ const CORK_LANGUAGE_FRIENDLY_NAME_BY_ID = new Map(Object.entries(CORK_LANGUAGE_F
 
 // Drop-in replacement for `@lexical/code-prism`'s `normalizeCodeLanguage`
 // that also resolves this file's own alias table.
-export function normalizeCorkCodeLanguage(lang: string): string {
+export function normalizeCorklyCodeLanguage(lang: string): string {
   return CORK_LANGUAGE_ALIAS_BY_ID.get(lang) ?? lang;
 }
 
@@ -150,8 +150,8 @@ export function normalizeCorkCodeLanguage(lang: string): string {
 // that also resolves this file's own friendly-name table. Map-backed (see
 // above), so — unlike upstream's version — this can never return a
 // function instead of a string.
-export function getCorkLanguageFriendlyName(lang: string): string {
-  const normalized = normalizeCorkCodeLanguage(lang);
+export function getCorklyLanguageFriendlyName(lang: string): string {
+  const normalized = normalizeCorklyCodeLanguage(lang);
   return CORK_LANGUAGE_FRIENDLY_NAME_BY_ID.get(normalized) ?? normalized;
 }
 

@@ -67,7 +67,7 @@ const TOK_MARKUP = "text-cork-danger-text";
 const TOK_GLUE = "text-cork-text/70";
 const TOK_COMMENT = "text-cork-muted italic";
 
-// Maps Lexical node types to Cork's Tailwind tokens so Markdown renders WYSIWYG
+// Maps Lexical node types to Corkly's Tailwind tokens so Markdown renders WYSIWYG
 // with the app's typography. Headings/inline-code override the editor box's
 // base `text-sm`.
 const theme: EditorThemeClasses = {

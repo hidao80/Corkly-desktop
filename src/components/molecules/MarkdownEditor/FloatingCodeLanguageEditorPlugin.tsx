@@ -27,11 +27,11 @@ import { anchorsEqual, type Anchor, firstLineAnchor, placeBelowStart } from "./p
 import {
   CORK_LANGUAGE_ALIAS_BY_ID,
   CORK_LANGUAGE_FRIENDLY_NAME_MAP,
-  getCorkLanguageFriendlyName,
-  normalizeCorkCodeLanguage,
+  getCorklyLanguageFriendlyName,
+  normalizeCorklyCodeLanguage,
 } from "./prismLanguages";
 
-// Every language `getCorkLanguageFriendlyName` can show a proper label for
+// Every language `getCorklyLanguageFriendlyName` can show a proper label for
 // (upstream's 17 plus everything `prismLanguages.ts` adds — Ruby, Go,
 // Kotlin, ...), sorted alphabetically by that label for a stable, scannable
 // list — the declaration order of `CORK_LANGUAGE_FRIENDLY_NAME_MAP` is
@@ -51,7 +51,7 @@ const LANGUAGE_VALUE_BY_LOWER_LABEL = new Map(
 // Resolves free-typed text to what actually gets stored: an exact (any-case)
 // match against a known friendly label wins first (`"JavaScript"` → `js`);
 // otherwise a known alias is canonicalized the same way
-// `normalizeCorkCodeLanguage` does for typed fence info strings (`"ts"` →
+// `normalizeCorklyCodeLanguage` does for typed fence info strings (`"ts"` →
 // `typescript`, `"golang"` → `go`), just case-insensitively — a convenience
 // this combobox affords that raw Markdown typing doesn't. Anything else
 // (`"nim"`, `"zig"`) is kept verbatim, in the user's exact casing: fenced
@@ -86,7 +86,7 @@ function resolveDraftLanguage(draft: string): string | null {
 // at all, silently rewriting the fence and dirtying the document. Normalize
 // the stored side the same way before comparing.
 function normalizeStoredLanguage(language: string | null): string | null {
-  return language == null ? null : normalizeCorkCodeLanguage(language);
+  return language == null ? null : normalizeCorklyCodeLanguage(language);
 }
 
 type LanguageRow = { value: string; label: string; custom?: boolean };
@@ -246,10 +246,10 @@ export function FloatingCodeLanguageEditorPlugin(): ReactNode {
       idRef.current += 1;
       keyRef.current = key;
       setBox({ key, language, anchor });
-      setDraft(language ? getCorkLanguageFriendlyName(language) : "");
+      setDraft(language ? getCorklyLanguageFriendlyName(language) : "");
       setEdited(false);
       mouseDisabledRef.current = false;
-      const normalized = language ? normalizeCorkCodeLanguage(language) : null;
+      const normalized = language ? normalizeCorklyCodeLanguage(language) : null;
       setSelectedIndex(normalized ? LANGUAGE_OPTIONS.findIndex((o) => o.value === normalized) : -1);
     },
     [editor, anchorForKey],
@@ -439,7 +439,7 @@ export function FloatingCodeLanguageEditorPlugin(): ReactNode {
 
   const pos =
     box == null ? null : placeBelowStart(box.anchor, { width: PANEL_WIDTH, height: panelHeight });
-  const currentValue = box?.language ? normalizeCorkCodeLanguage(box.language) : null;
+  const currentValue = box?.language ? normalizeCorklyCodeLanguage(box.language) : null;
 
   return createPortal(
     <AnimatePresence>

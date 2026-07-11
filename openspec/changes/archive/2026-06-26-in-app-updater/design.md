@@ -1,6 +1,6 @@
 ## Context
 
-Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **GitHub Releases の DMG 直ダウンロード** と **Homebrew Cask (`koki-develop/homebrew-tap`)** の二経路。Apple Developer Program には加入していないため、`.app` は ad-hoc 署名（`codesign --sign -`）。現状の Cask は `preflight` で再 codesign + `xattr -dr com.apple.quarantine` を実行することで Gatekeeper をすり抜けている。
+Corkly は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **GitHub Releases の DMG 直ダウンロード** と **Homebrew Cask (`koki-develop/homebrew-tap`)** の二経路。Apple Developer Program には加入していないため、`.app` は ad-hoc 署名（`codesign --sign -`）。現状の Cask は `preflight` で再 codesign + `xattr -dr com.apple.quarantine` を実行することで Gatekeeper をすり抜けている。
 
 更新フローはユーザー任せ：DMG 再ダウンロード、または `brew upgrade --cask cork`。アプリ起動中にバージョン更新を促す手段は存在しない。リリース告知から実際の更新までの導線が極端に長く、また Brew 利用者と DMG 直ダウンロード利用者で更新時の挙動が分かれている。
 
@@ -79,7 +79,7 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 
 ### Decision 3: 配信エンドポイントは GitHub Releases 上の静的 `latest.json`
 
-**選択**: `https://github.com/koki-develop/Cork/releases/latest/download/latest.json`。GitHub Releases の「最新タグ」エイリアス機能で常に最新版の release アセットを参照する。
+**選択**: `https://github.com/koki-develop/Corkly/releases/latest/download/latest.json`。GitHub Releases の「最新タグ」エイリアス機能で常に最新版の release アセットを参照する。
 
 **根拠**:
 
@@ -90,7 +90,7 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 
 **代替案検討**:
 
-- **Vercel / Cloudflare Workers / 自前 API server**: ロールバック / 段階配信 / A/B 配信が可能になるが、Cork の規模では over-engineering。不採用。
+- **Vercel / Cloudflare Workers / 自前 API server**: ロールバック / 段階配信 / A/B 配信が可能になるが、Corkly の規模では over-engineering。不採用。
 - **GitHub Pages の静的サイト**: アセットと別管理になり、リリースの atomic 性が失われる（タグ release と Pages デプロイのズレが起きうる）。不採用。
 
 ### Decision 4: Homebrew Cask に `auto_updates true` を追加
@@ -99,7 +99,7 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 
 **根拠**:
 
-- `auto_updates true` は **「アプリが自走更新するから Brew は二重に更新しなくて良い」というヒント**。`brew upgrade --cask cork`（名前指定）は引き続き動作する（force install 相当）が、bare `brew upgrade` は Brew が `Cork.app/Contents/Info.plist` の `CFBundleVersion` を見て「ローカルが既に最新なら何もしない」（2026/4 の Homebrew/brew#21882 以降の挙動）。
+- `auto_updates true` は **「アプリが自走更新するから Brew は二重に更新しなくて良い」というヒント**。`brew upgrade --cask cork`（名前指定）は引き続き動作する（force install 相当）が、bare `brew upgrade` は Brew が `Corkly.app/Contents/Info.plist` の `CFBundleVersion` を見て「ローカルが既に最新なら何もしない」（2026/4 の Homebrew/brew#21882 以降の挙動）。
 - VSCode / Slack 等が採用する標準パターン。
 - `version` を毎リリース更新する運用は既存の `release-please` がカバー（`package.json` の version をバンプ → `build-cask.ts` がそれを Cask に書く）。
 
@@ -118,15 +118,15 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 
 **根拠**:
 
-- **常時 ON / opt-out 削除**: 当初は Settings 画面に ON/OFF トグルを設置する案だったが、実装直前に「自動チェック OFF にしたいユースケースが想定できない、UI が増えるだけ」と判断し、ユーザー制御を撤廃。永続化設定もこれに合わせて削除（Decision 6 参照）。VSCode / Slack 等の標準慣行は opt-out だが、Cork はその opt-out すら無くした。
-- **`main` Window 限定で auto-check を実行**: Cork の multi-window アーキテクチャ（`tauri-plugin-single-instance` 経由）では、各 Window が独立した React tree を持つ。素朴に `App.tsx` で `useUpdater` を呼ぶと、新しい `workspace-N` Window が開かれるたびに重複した auto-check が走る。`main` ラベルは **プロセスのライフタイムで必ず最初の Window 1 つにだけ** 付与され（既存の `lib.rs` の `MAIN_WINDOW_LABEL` 定数で固定、新規 Window は `workspace-<n>` を取得）、closed window のラベルが再利用されることもない。これにより「プロセス全体で auto-check 1 回」を **追加のロックや state を持たずに** ラベル比較だけで実現できる。
+- **常時 ON / opt-out 削除**: 当初は Settings 画面に ON/OFF トグルを設置する案だったが、実装直前に「自動チェック OFF にしたいユースケースが想定できない、UI が増えるだけ」と判断し、ユーザー制御を撤廃。永続化設定もこれに合わせて削除（Decision 6 参照）。VSCode / Slack 等の標準慣行は opt-out だが、Corkly はその opt-out すら無くした。
+- **`main` Window 限定で auto-check を実行**: Corkly の multi-window アーキテクチャ（`tauri-plugin-single-instance` 経由）では、各 Window が独立した React tree を持つ。素朴に `App.tsx` で `useUpdater` を呼ぶと、新しい `workspace-N` Window が開かれるたびに重複した auto-check が走る。`main` ラベルは **プロセスのライフタイムで必ず最初の Window 1 つにだけ** 付与され（既存の `lib.rs` の `MAIN_WINDOW_LABEL` 定数で固定、新規 Window は `workspace-<n>` を取得）、closed window のラベルが再利用されることもない。これにより「プロセス全体で auto-check 1 回」を **追加のロックや state を持たずに** ラベル比較だけで実現できる。
 - **起動時 1 回のみ**: 長時間起動状態を維持するワークフローで、何時間も後に「更新があります」通知がいきなり出るのはノイズ。次回起動時の自動チェックで十分捕捉できる。
 
 **代替案検討**:
 
 - **`AppState` に `AtomicBool` の auto-check claimed フラグを追加**: より厳密だが、各 Window 側の `useUpdater` が Rust コマンド `try_claim_auto_check` を呼んで結果次第で実行する必要があり、JS 側にラウンドトリップが増える。`main` ラベル比較で済むなら不要。不採用。
 - **Rust の `setup()` で auto-check を走らせ、結果を event で全 Window に emit**: 最も「process-singleton」として正しい設計だが、`tauri-plugin-updater` の Rust API（`app.updater()` の正確な extension trait）の確認が未完。JS 側の `check()` は実機検証済みのため、まずは JS 側 + `main` ゲートで実装し、必要が出れば Rust 化を後続 change で検討。
-- **定期再チェック（例: 4 時間ごと）**: 長時間起動ユーザー向けには良いが、Cork はバックグラウンドで常駐するアプリでもないため過剰。複雑化を避けて不採用。
+- **定期再チェック（例: 4 時間ごと）**: 長時間起動ユーザー向けには良いが、Corkly はバックグラウンドで常駐するアプリでもないため過剰。複雑化を避けて不採用。
 
 **残課題（edge cases）**:
 
@@ -162,7 +162,7 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 **代替案検討**:
 
 - **Settings 画面の中だけに置く**: macOS の慣習から外れる。NO。
-- **ツールバー / バッジ**: 常時表示は UI ノイズ、また Cork はメニューバーアプリではないため不適切。NO。
+- **ツールバー / バッジ**: 常時表示は UI ノイズ、また Corkly はメニューバーアプリではないため不適切。NO。
 
 ### Decision 8: UI は sonner toast、専用ダイアログは設けない
 
@@ -189,7 +189,7 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 
 - **`sonner.toast.custom` で完全自作 JSX**: 状態管理が複雑化（progress 更新の度に毎フレーム JSX 再生成）、sonner の reducer dispatch が肥大化。NO。
 - **`organisms/updater/` 新規ドメインフォルダ**: `.oxlintrc.json` のクロスドメインルール追加が必要、保守コスト増。dialog は `shell/`（app-chrome overlay）に置くだけで足りる。NO。
-- **macOS NSUserNotification の native 通知**: dark UI 文脈で浮く、Cork 既存のテーマと不整合。NO。
+- **macOS NSUserNotification の native 通知**: dark UI 文脈で浮く、Corkly 既存のテーマと不整合。NO。
 
 ### Decision 8a: Settings 画面の Update セクションは設置しない
 
@@ -198,7 +198,7 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 **根拠**:
 
 - Decision 5 / Decision 6 と同期した方針。自動チェック ON/OFF を撤廃し、永続化も廃止したため、Settings 画面に表示する状態がゼロ。
-- 「現バージョン表示」だけ残す案も検討したが、`Cork > About Cork...` で代用可能のため単独セクションを設ける価値が乏しい。
+- 「現バージョン表示」だけ残す案も検討したが、`Corkly > About Corkly...` で代用可能のため単独セクションを設ける価値が乏しい。
 
 **代替案検討**:
 
@@ -238,18 +238,18 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
 
 ## Risks / Trade-offs
 
-| Risk                                                                                                                                        | Mitigation                                                                                                                                                                                  |
-| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tauri-plugin-updater` の macOS 実装が将来バージョンで quarantine xattr を付けるよう変わると Gatekeeper ブロックされる                      | Tauri リリースノートを CI 更新時にチェック。回避策として post-install hook で `xattr -cr` を自前で実行する保険コード（Decision 2 と同じ tier の defensive measure）を後続 change で追加可能 |
-| Brew Cask の preflight と Tauri 内蔵 ad-hoc codesign で designated requirement が異なると、in-app 更新後に TCC が再認証要求する             | 初回リリース後に実機検証（Cork の TCC 権限が残るか）。問題があれば custom codesign を CI に追加する別 change                                                                                |
-| 秘密鍵漏洩時に攻撃者が偽更新を配信できる                                                                                                    | GitHub Secrets の通常通りの管理。漏洩時は新鍵で「強制 brew upgrade」リリースを行いつつ、ユーザーに新鍵版への手動更新を告知                                                                  |
-| ダウンロード中にアプリを `Cmd+Q` で終了されると中間ファイルが tempdir に残る                                                                | macOS は再起動時に `$TMPDIR` を自動クリーンアップ。問題なし（spec の Scenario「進捗ダイアログ表示中の Window クローズ」で明示）                                                             |
-| `latest.json` のスキーマが Tauri 側でバージョンアップして変わる                                                                             | minor version pin で防御（`tauri-plugin-updater = "=2.10.x"` 形式）。Tauri アップデート時に手動レビュー                                                                                     |
-| 自走更新後に旧設定 (`settings.json`) が新バージョンで読めない                                                                               | updater 自体は永続化を持たない（Decision 6）ため発生しない。他キー (`mcp` 等) の互換性は各キーの担当が保証                                                                                  |
-| Apple Silicon 専用ビルドのまま x86_64 ユーザーが Cork を使い始めると `latest.json` に該当プラットフォームキーが無くサイレントに更新が来ない | これは現状の Cask が aarch64-only であることと整合。Issue として残し、x86_64 サポートを追加するとき同時に `latest.json` も拡張                                                              |
-| `tauri-plugin-updater` 2.10.x が Tauri 2.11.x と非互換                                                                                      | プラグイン側 README で 2.x 系互換とされている。実装着手時に CI ビルドで早期検証する                                                                                                         |
-| 常時 ON の自動チェックで GitHub に対する負荷                                                                                                | クライアント数 × 起動回数で発生するが、`latest.json` は数百バイトの静的ファイルで GitHub releases は無限スケール。問題なし                                                                  |
-| 同じ id で sonner toast を update する race                                                                                                 | `prevKindRef` で visible 状態からの遷移時のみ `toast.dismiss(id)` を呼ぶ実装で sonner 内部 RAF dismiss event の遅延配信問題を回避（spec Scenario 参照）                                     |
+| Risk                                                                                                                                          | Mitigation                                                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tauri-plugin-updater` の macOS 実装が将来バージョンで quarantine xattr を付けるよう変わると Gatekeeper ブロックされる                        | Tauri リリースノートを CI 更新時にチェック。回避策として post-install hook で `xattr -cr` を自前で実行する保険コード（Decision 2 と同じ tier の defensive measure）を後続 change で追加可能 |
+| Brew Cask の preflight と Tauri 内蔵 ad-hoc codesign で designated requirement が異なると、in-app 更新後に TCC が再認証要求する               | 初回リリース後に実機検証（Corkly の TCC 権限が残るか）。問題があれば custom codesign を CI に追加する別 change                                                                              |
+| 秘密鍵漏洩時に攻撃者が偽更新を配信できる                                                                                                      | GitHub Secrets の通常通りの管理。漏洩時は新鍵で「強制 brew upgrade」リリースを行いつつ、ユーザーに新鍵版への手動更新を告知                                                                  |
+| ダウンロード中にアプリを `Cmd+Q` で終了されると中間ファイルが tempdir に残る                                                                  | macOS は再起動時に `$TMPDIR` を自動クリーンアップ。問題なし（spec の Scenario「進捗ダイアログ表示中の Window クローズ」で明示）                                                             |
+| `latest.json` のスキーマが Tauri 側でバージョンアップして変わる                                                                               | minor version pin で防御（`tauri-plugin-updater = "=2.10.x"` 形式）。Tauri アップデート時に手動レビュー                                                                                     |
+| 自走更新後に旧設定 (`settings.json`) が新バージョンで読めない                                                                                 | updater 自体は永続化を持たない（Decision 6）ため発生しない。他キー (`mcp` 等) の互換性は各キーの担当が保証                                                                                  |
+| Apple Silicon 専用ビルドのまま x86_64 ユーザーが Corkly を使い始めると `latest.json` に該当プラットフォームキーが無くサイレントに更新が来ない | これは現状の Cask が aarch64-only であることと整合。Issue として残し、x86_64 サポートを追加するとき同時に `latest.json` も拡張                                                              |
+| `tauri-plugin-updater` 2.10.x が Tauri 2.11.x と非互換                                                                                        | プラグイン側 README で 2.x 系互換とされている。実装着手時に CI ビルドで早期検証する                                                                                                         |
+| 常時 ON の自動チェックで GitHub に対する負荷                                                                                                  | クライアント数 × 起動回数で発生するが、`latest.json` は数百バイトの静的ファイルで GitHub releases は無限スケール。問題なし                                                                  |
+| 同じ id で sonner toast を update する race                                                                                                   | `prevKindRef` で visible 状態からの遷移時のみ `toast.dismiss(id)` を呼ぶ実装で sonner 内部 RAF dismiss event の遅延配信問題を回避（spec Scenario 参照）                                     |
 
 ## Migration Plan
 
@@ -261,12 +261,12 @@ Cork は Tauri 2.11 ベースの macOS 専用 Kanban アプリ。配布は **Git
    - 0.15.0 → 0.16.0（updater 入り）の更新は手動。
    - 0.16.0 → 0.16.1（テストリリース）で in-app updater フロー全体を実機検証。
 6. **検証項目**:
-   - 自動チェック toast 表示（`Cork x.y.z is available`）
+   - 自動チェック toast 表示（`Corkly x.y.z is available`）
    - `Install and Restart` → ダウンロード進捗 → installing → 再起動が成功する
    - 再起動後 Gatekeeper プロンプトが出ない
-   - 再起動後 `codesign --display /Applications/Cork.app` が `Signature=adhoc` 相当
+   - 再起動後 `codesign --display /Applications/Corkly.app` が `Signature=adhoc` 相当
    - 再起動後 TCC 権限（フルディスクアクセス等）が継続している
-   - `cork-cli` シンボリックリンクが新版を指す
+   - `cork` シンボリックリンクが新版を指す
    - `brew list --cask --versions cork` が新バージョンを認識する（または bundle_version 比較で `brew upgrade` がスキップする）
 
 **Rollback strategy**: in-app updater 自体に問題があれば、新リリース版の `tauri.conf.json` で endpoint を空文字列にして自動チェックを無効化（あるいは `plugins.updater` ブロック自体を削除）。既存ユーザーには「`brew upgrade --cask cork` か手動 DMG で復旧してください」と告知。

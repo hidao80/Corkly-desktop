@@ -32,7 +32,7 @@ The user also called out one explicit non-goal: changing the language of an exis
 - Three-rule behavior as written in the task — exact, no fuzzy fallback.
 - No regression to existing keyboard behavior: arrow escape, Shift+Enter escape, Tab in lists, horizontal-rule arrow handling, inline-format guards.
 - No regression to Markdown round-trip: the on-disk info string is the source of truth and is **not** rewritten by the highlighter.
-- Token coloring that fits the Cork palette and stays legible on `cork-bg` (the code-block well).
+- Token coloring that fits the Corkly palette and stays legible on `cork-bg` (the code-block well).
 - No new npm dependencies. Use only the public API of `@lexical/code` (plus `lexical` for the node primitives we already use).
 - The plugin lives inside the `MarkdownEditor/` folder (atomic-design boundary) and is registered alongside the existing plugins in `MarkdownEditor.tsx`.
 
@@ -154,7 +154,7 @@ The `editorState` function form runs inside an editor.update() tagged with `HIST
 - **Tag the plugin's first-sweep splice with `HISTORY_MERGE_TAG` via `$addUpdateTag`**: requires tracking "is this the first sweep?" state inside the transform, since later real-edit transforms must NOT be tagged (or onChange would be permanently suppressed). The editorState-init approach is simpler — initialization-as-initialization, not initialization-via-side-effect.
 - **Have the consumer's `handleBodyChange` short-circuit on string equality with `originalRef.current.body`**: shifts the burden onto every consumer of `MarkdownEditor`. Worse: the byte-equal guarantee depends on `$convertToMarkdownString`'s normalization shape being stable, which isn't part of `@lexical/markdown`'s public contract.
 
-### Decision 5: A 7-token Cork-palette color set for `theme.codeHighlight`
+### Decision 5: A 7-token Corkly-palette color set for `theme.codeHighlight`
 
 **Choice**: Map Prism token types to Tailwind classes drawn from existing `cork-*` tokens. Mapping (full list below in Decision 6):
 
@@ -172,7 +172,7 @@ The `editorState` function form runs inside an editor.update() tagged with `HIST
 
 **Why this palette:**
 
-- **Color budget is fixed by Cork's existing tokens** — five chromatic options total (`cork-accent`, `cork-accent-hover`, `cork-success-text`, `cork-warning-text`, `cork-danger-text`) plus `cork-text` and `cork-muted`. Introducing a new `--color-cork-syntax-*` family for syntax highlighting would balloon the design-token surface for one feature. Reusing the existing tokens keeps the editor visually coherent with the rest of the app (link color, focus rings, success/warning toasts).
+- **Color budget is fixed by Corkly's existing tokens** — five chromatic options total (`cork-accent`, `cork-accent-hover`, `cork-success-text`, `cork-warning-text`, `cork-danger-text`) plus `cork-text` and `cork-muted`. Introducing a new `--color-cork-syntax-*` family for syntax highlighting would balloon the design-token surface for one feature. Reusing the existing tokens keeps the editor visually coherent with the rest of the app (link color, focus rings, success/warning toasts).
 - **Hierarchy by frequency, not random hue assignment**: comments → muted (low salience), punctuation/operator → 70% text (cheap glue), strings/numbers/keywords → branded colors (high salience). This matches the visual weight users expect from VS Code, GitHub, and Obsidian without copying any specific scheme.
 - **Contrast against `cork-bg` (`#020617`, near-black)**: all chosen tokens are intentionally chromatic on a near-black surface, so contrast is expected to be high. The lowest-contrast pair is `cork-accent` (#6366f1) for `keyword` — a mid-saturation indigo. The expectation is that every pair clears WCAG AA for small body text, and most clear AAA. **This SHOULD be verified with a contrast checker during code review** (e.g. WebAIM's contrast checker) and re-checked after the visual review step in `tasks.md` 5.7. If `cork-accent` fails AA, fall back to `cork-accent-hover` (a lighter indigo) for `keyword`.
 - **Italic on `comment`, bold on `keyword`**: small typographic cues differentiate semantic groups even for users with color-vision deficiency (we are NOT relying on color alone).
@@ -181,7 +181,7 @@ The `editorState` function form runs inside an editor.update() tagged with `HIST
 
 **Alternatives considered:**
 
-- **Adopt the Prism "Tomorrow Night" stylesheet wholesale**: introduces a parallel color system that won't track the Cork palette and may clash with focus rings / link color.
+- **Adopt the Prism "Tomorrow Night" stylesheet wholesale**: introduces a parallel color system that won't track the Corkly palette and may clash with focus rings / link color.
 - **Single accent + bold-italic-only differentiation (monochrome)**: lower information density, kills the "this is a code block" cognitive cue, doesn't match user expectation for highlighting.
 - **Extend `@theme` with a new `--color-cork-syntax-{keyword|string|number|comment|fn}` family**: cleaner namespacing, but adds five tokens for one feature and the existing tokens already cover the cases legibly. Reconsider only if a future feature needs a wider palette (e.g. terminal output).
 

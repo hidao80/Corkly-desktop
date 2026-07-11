@@ -13,16 +13,17 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - uses: flatt-security/setup-takumi-guard-npm@v1
       - uses: ./.github/actions/setup
       - run: bun run fmt:check
       - run: bun run lint
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('bun.lock') }}
@@ -32,11 +33,31 @@ jobs:
       - run: bun run test
 
   build:
-    runs-on: macos-latest
+    strategy:
+      # Don't cancel the other OSes when one fails — a single-platform issue
+      # shouldn't hide the state of the others.
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - uses: flatt-security/setup-takumi-guard-npm@v1
       - uses: ./.github/actions/setup
+      # Tauri v2 on Linux needs webkit2gtk-4.1 + gtk-3 + rsvg2 + patchelf.
+      # macOS / Windows have no comparable prerequisite (WebView2 is bundled on
+      # Windows 10 1803+, WebKit is a system framework on macOS).
+      - name: Install Linux Tauri dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev
       - run: bun run tauri build --no-bundle

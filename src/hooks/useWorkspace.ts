@@ -26,7 +26,7 @@ export function useWorkspace(dir: string) {
   } = useWorkspaceTasks({ dir, query, filters });
 
   useWorkspaceWatcher(dir, {
-    onCorkConfigChange: () => {
+    onCorklyConfigChange: () => {
       loadStatuses();
       loadName();
       loadTasks().then(loadAvailableTags);

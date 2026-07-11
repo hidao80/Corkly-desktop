@@ -1,6 +1,6 @@
 ## Context
 
-Cork の設定パネル (`SettingsPanel.tsx`) は、直前に投入した `unify-settings-save-behavior` 変更によって Workspace Directory / Statuses のどちらも `Save` ボタンで確定する pending-state ベースの編集モデルになっている。実際に触ってみると毎回の操作で `Save` を押す必要があり、特に「フォルダを開く → ピックする → さらに `Save` を押す」「ステータスを 1 個消すだけで `Save` を押す」というフローは煩雑である。pending 状態を管理するために `SettingsPanel` 側に `pendingDir`、`useStatusEdit` 側に `isDirty` / `dragSnapshot` / `handleSave` が混在しており、コードも素直ではない。
+Corkly の設定パネル (`SettingsPanel.tsx`) は、直前に投入した `unify-settings-save-behavior` 変更によって Workspace Directory / Statuses のどちらも `Save` ボタンで確定する pending-state ベースの編集モデルになっている。実際に触ってみると毎回の操作で `Save` を押す必要があり、特に「フォルダを開く → ピックする → さらに `Save` を押す」「ステータスを 1 個消すだけで `Save` を押す」というフローは煩雑である。pending 状態を管理するために `SettingsPanel` 側に `pendingDir`、`useStatusEdit` 側に `isDirty` / `dragSnapshot` / `handleSave` が混在しており、コードも素直ではない。
 
 一方、ボード上の操作（カードの移動、列の並び替え）はすべて即時永続化されている。設定パネルも同じセマンティクスに揃えれば、ユーザーは「クリック / 入力 = 反映」という単一のメンタルモデルだけで操作でき、コードも `Cancel` / `Save` バリアを取り払って素直に書ける。
 
@@ -88,8 +88,8 @@ useStatusEdit(initialStatuses, {
 
 ## Risks / Trade-offs
 
-- **[誤クリックでステータス削除 → 復元不能]** → Mitigation: 削除はゴミ箱アイコンクリック後の確認なしで即時行う既存挙動だが、Cork の対象はラベル文字列のみで `list_tasks` のステータスは frontmatter から読まれるためタスク自身は失われない。`Add Status` で同名を打ち直せばラベル復元できる。確認ダイアログは UX を損なうので追加しない
+- **[誤クリックでステータス削除 → 復元不能]** → Mitigation: 削除はゴミ箱アイコンクリック後の確認なしで即時行う既存挙動だが、Corkly の対象はラベル文字列のみで `list_tasks` のステータスは frontmatter から読まれるためタスク自身は失われない。`Add Status` で同名を打ち直せばラベル復元できる。確認ダイアログは UX を損なうので追加しない
 - **[onBlur のレースコンディション]** → Mitigation: ラベル入力中にゴミ箱で他の行を削除すると、即時 `save_statuses` と編集中の `onBlur` 永続化が同時に走る可能性がある。永続化は `await` で順序を保ち、`save_statuses` は常に「現在の `editing` をベースにした完全な配列」を送るので最後勝ち。許容範囲
 - **[空行除外と Add Status の連打]** → Mitigation: 連打して空行を量産しても、フォーカスを動かさない限り `editing` に積まれるだけ。フォーカスを当てに行った瞬間に過去の空行は `onBlur` 経由で消えていく。挙動として奇異だが致命的ではない
 - **[`set_workspace_directory` 失敗時に UI が不整合]** → Mitigation: `setDir` を呼ばないので Board は古いディレクトリのまま動き続ける。エラーは console に流す。今後 toast 実装を入れたらフィードバック追加
-- **[Statuses 永続化失敗時の state 復元なし]** → Mitigation: 既存 `useStatusEdit.handleSave` も成功前提でローカル state を進めていたため挙動継続。失敗ケースは現状の Cork の運用上ほぼ起きない（ローカル `tauri_plugin_store` への書き込み失敗のみ）
+- **[Statuses 永続化失敗時の state 復元なし]** → Mitigation: 既存 `useStatusEdit.handleSave` も成功前提でローカル state を進めていたため挙動継続。失敗ケースは現状の Corkly の運用上ほぼ起きない（ローカル `tauri_plugin_store` への書き込み失敗のみ）

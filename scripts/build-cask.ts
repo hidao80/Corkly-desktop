@@ -3,7 +3,7 @@ import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 
 const REPO_OWNER = "koki-develop";
-const REPO_NAME = "Cork";
+const REPO_NAME = "Corkly";
 
 async function downloadAndHash(url: string): Promise<string> {
   const response = await fetch(url);
@@ -24,8 +24,8 @@ cask "cork" do
   version "${version}"
   sha256 "${sha256}"
 
-  url "https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v#{version}/Cork_#{version}_aarch64.dmg"
-  name "Cork"
+  url "https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v#{version}/Corkly_#{version}_aarch64.dmg"
+  name "Corkly"
   desc "Kanban board for local Markdown files"
   homepage "https://github.com/${REPO_OWNER}/${REPO_NAME}"
 
@@ -33,11 +33,11 @@ cask "cork" do
 
   depends_on arch: :arm64
 
-  app "Cork.app"
+  app "Corkly.app"
 
-  # \`cork\` CLI を PATH に公開する。Cork.app に同梱した sidecar バイナリ
-  # (Contents/MacOS/cork-cli) を \`cork\` という名前でシンボリックリンクする。
-  binary "#{appdir}/Cork.app/Contents/MacOS/cork-cli", target: "cork"
+  # \`cork\` CLI を PATH に公開する。Corkly.app に同梱した sidecar バイナリ
+  # (Contents/MacOS/cork) を \`cork\` という名前でシンボリックリンクする。
+  binary "#{appdir}/Corkly.app/Contents/MacOS/cork", target: "cork"
 
   preflight do
     # ad-hoc 署名で designated requirement を identifier のみに設定
@@ -49,10 +49,10 @@ cask "cork" do
                      "--sign", "-",
                      "--identifier", "me.koki.cork",
                      "-r=designated => identifier \\"me.koki.cork\\"",
-                     "#{staged_path}/Cork.app"
+                     "#{staged_path}/Corkly.app"
                    ]
     system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{staged_path}/Cork.app"]
+                   args: ["-dr", "com.apple.quarantine", "#{staged_path}/Corkly.app"]
   end
 end
 `;
@@ -88,7 +88,7 @@ async function main() {
     process.exit(1);
   }
 
-  const url = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v${version}/Cork_${version}_aarch64.dmg`;
+  const url = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v${version}/Corkly_${version}_aarch64.dmg`;
 
   console.log("Downloading and calculating sha256 for aarch64...");
   const sha256 = await downloadAndHash(url);

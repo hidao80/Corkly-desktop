@@ -367,7 +367,7 @@ fn stable_short_hash(s: &str) -> u16 {
 
 /// One MCP server derived from an open workspace: the stable server name (the
 /// `cork-<slug>` key shown in `mcp.json`) plus the absolute workspace path that
-/// goes in the `X-Cork-Workspace` header. The URL is port-only and identical
+/// goes in the `X-Corkly-Workspace` header. The URL is port-only and identical
 /// across entries, so each builder appends it itself.
 struct ServerEntry {
     name: String,
@@ -420,7 +420,7 @@ pub fn build_sample_config(open_workspaces: &[PathBuf], port: u16, token: &str) 
             serde_json::json!(format!("Bearer {token}")),
         );
         headers.insert(
-            "X-Cork-Workspace".to_string(),
+            "X-Corkly-Workspace".to_string(),
             serde_json::json!(entry.workspace.clone()),
         );
         let server = serde_json::json!({
@@ -486,7 +486,7 @@ fn claude_code_snippet(entries: &[ServerEntry], port: u16, token: &str) -> Strin
         .iter()
         .map(|e| {
             let auth = shell_single_quote(&format!("Authorization: Bearer {token}"));
-            let ws = shell_single_quote(&format!("X-Cork-Workspace: {}", e.workspace));
+            let ws = shell_single_quote(&format!("X-Corkly-Workspace: {}", e.workspace));
             format!(
                 "claude mcp add --transport http {name} {url} \\\n  --header {auth} \\\n  --header {ws}",
                 name = e.name,
@@ -498,7 +498,7 @@ fn claude_code_snippet(entries: &[ServerEntry], port: u16, token: &str) -> Strin
 
 /// Codex CLI: a `config.toml` table per workspace. `codex mcp add` cannot set
 /// arbitrary HTTP headers from the CLI (only a bearer token via an env var), so
-/// the `X-Cork-Workspace` header forces the file form with `http_headers`.
+/// the `X-Corkly-Workspace` header forces the file form with `http_headers`.
 fn codex_snippet(entries: &[ServerEntry], port: u16, token: &str) -> String {
     let url = toml_basic_string(&mcp_url(port));
     let auth = toml_basic_string(&format!("Bearer {token}"));
@@ -507,7 +507,7 @@ fn codex_snippet(entries: &[ServerEntry], port: u16, token: &str) -> String {
         .map(|e| {
             let ws = toml_basic_string(&e.workspace);
             format!(
-                "[mcp_servers.{name}]\nurl = {url}\nhttp_headers = {{ \"Authorization\" = {auth}, \"X-Cork-Workspace\" = {ws} }}",
+                "[mcp_servers.{name}]\nurl = {url}\nhttp_headers = {{ \"Authorization\" = {auth}, \"X-Corkly-Workspace\" = {ws} }}",
                 name = e.name,
             )
         })
@@ -524,7 +524,7 @@ fn opencode_snippet(entries: &[ServerEntry], port: u16, token: &str) -> String {
         .iter()
         .map(|e| {
             let auth = shell_single_quote(&format!("Authorization=Bearer {token}"));
-            let ws = shell_single_quote(&format!("X-Cork-Workspace={}", e.workspace));
+            let ws = shell_single_quote(&format!("X-Corkly-Workspace={}", e.workspace));
             format!(
                 "opencode mcp add {name} --url {url} \\\n  --header {auth} \\\n  --header {ws}",
                 name = e.name,
@@ -727,13 +727,13 @@ fn resolve_settings(parsed: Option<McpSettings>) -> (McpSettings, bool) {
 /// `tools/call` returns `method_not_found` — the entire v1 feature set
 /// would be unreachable.
 #[derive(Clone, Default)]
-pub struct CorkMcpServer;
+pub struct CorklyMcpServer;
 
 #[tool_router]
-impl CorkMcpServer {
+impl CorklyMcpServer {
     #[tool(
         name = "list_tasks",
-        description = "List Cork tasks in the workspace."
+        description = "List Corkly tasks in the workspace."
     )]
     async fn list_tasks(
         &self,
@@ -776,7 +776,7 @@ impl CorkMcpServer {
 
     #[tool(
         name = "list_statuses",
-        description = "List all status columns defined in the Cork workspace."
+        description = "List all status columns defined in the Corkly workspace."
     )]
     async fn list_statuses(
         &self,
@@ -804,7 +804,7 @@ impl CorkMcpServer {
 
     #[tool(
         name = "list_tags",
-        description = "List all tags used across tasks in the Cork workspace."
+        description = "List all tags used across tasks in the Corkly workspace."
     )]
     async fn list_tags(
         &self,
@@ -832,7 +832,7 @@ impl CorkMcpServer {
 
     #[tool(
         name = "create_task",
-        description = "Create a new task in the Cork workspace."
+        description = "Create a new task in the Corkly workspace."
     )]
     async fn create_task(
         &self,
@@ -894,7 +894,7 @@ impl CorkMcpServer {
 
     #[tool(
         name = "delete_task",
-        description = "Delete a task from the Cork workspace by its exact title."
+        description = "Delete a task from the Corkly workspace by its exact title."
     )]
     async fn delete_task(
         &self,
@@ -931,7 +931,7 @@ impl CorkMcpServer {
 
     #[tool(
         name = "update_task_title",
-        description = "Rename a task in the Cork workspace by its exact current title."
+        description = "Rename a task in the Corkly workspace by its exact current title."
     )]
     async fn update_task_title(
         &self,
@@ -969,11 +969,11 @@ impl CorkMcpServer {
 }
 
 #[tool_handler]
-impl ServerHandler for CorkMcpServer {
+impl ServerHandler for CorklyMcpServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
-                "Cork — a local Markdown Kanban board. Every task is a plain Markdown file on disk, so this server keeps a deliberately lean tool surface: read tasks, create/delete whole tasks, rename a task's title, and edit everything else by writing to the Markdown file directly.\n\nTools:\n- `list_tasks` — read tasks. Each result includes its `file_path` (the absolute path to the task's Markdown file).\n- `create_task` — create a new task.\n- `delete_task` — delete a task by title.\n- `update_task_title` — rename a task (change its title).\n- `list_statuses` — list status columns.\n- `list_tags` — list all tags in the workspace.\n\nTo change an existing task's status, tags, due date, or body, do NOT look for an MCP tool. Instead, call `list_tasks` to obtain the task's `file_path`, then edit that Markdown file directly with your file-editing tools. Status/tags/date live in the YAML frontmatter; the task body is the Markdown below it.\n\nThe title is the one exception: Cork derives a task's filename from its title with its own encoding (e.g. `/` handling), so renaming by editing or moving the file yourself will not work correctly. Always use `update_task_title` to change a title — never a manual file rename.",
+                "Corkly — a local Markdown Kanban board. Every task is a plain Markdown file on disk, so this server keeps a deliberately lean tool surface: read tasks, create/delete whole tasks, rename a task's title, and edit everything else by writing to the Markdown file directly.\n\nTools:\n- `list_tasks` — read tasks. Each result includes its `file_path` (the absolute path to the task's Markdown file).\n- `create_task` — create a new task.\n- `delete_task` — delete a task by title.\n- `update_task_title` — rename a task (change its title).\n- `list_statuses` — list status columns.\n- `list_tags` — list all tags in the workspace.\n\nTo change an existing task's status, tags, due date, or body, do NOT look for an MCP tool. Instead, call `list_tasks` to obtain the task's `file_path`, then edit that Markdown file directly with your file-editing tools. Status/tags/date live in the YAML frontmatter; the task body is the Markdown below it.\n\nThe title is the one exception: Corkly derives a task's filename from its title with its own encoding (e.g. `/` handling), so renaming by editing or moving the file yourself will not work correctly. Always use `update_task_title` to change a title — never a manual file rename.",
             )
     }
 }
@@ -1002,7 +1002,7 @@ pub async fn auth_layer(
     // Recover from poison — see the matching `unwrap_or_else` in
     // `update_settings`. A poisoned `RwLock<String>` still holds a valid
     // `String`; returning 401 here would lock out the user every time
-    // they hit the auth layer until they restart Cork.
+    // they hit the auth layer until they restart Corkly.
     let stored = token.read().unwrap_or_else(|p| p.into_inner()).clone();
     let ok: bool = supplied.as_bytes().ct_eq(stored.as_bytes()).into();
     if !ok {
@@ -1025,12 +1025,12 @@ fn unauthorized() -> Response<Body> {
 pub async fn workspace_layer(mut req: Request, next: Next) -> Response<Body> {
     let raw = req
         .headers()
-        .get("X-Cork-Workspace")
+        .get("X-Corkly-Workspace")
         .and_then(|v| v.to_str().ok());
     let raw = match raw {
         Some(s) if !s.is_empty() => s.to_string(),
-        Some(_) => return bad_request("X-Cork-Workspace header is empty"),
-        None => return bad_request("X-Cork-Workspace header is required"),
+        Some(_) => return bad_request("X-Corkly-Workspace header is empty"),
+        None => return bad_request("X-Corkly-Workspace header is required"),
     };
 
     // `tokio::fs::canonicalize` (vs. `std::fs::canonicalize`) hands the
@@ -1040,7 +1040,7 @@ pub async fn workspace_layer(mut req: Request, next: Next) -> Response<Body> {
     // behind it on the multi-threaded runtime.
     let canonical = match tokio::fs::canonicalize(PathBuf::from(&raw)).await {
         Ok(p) => p,
-        Err(_) => return bad_request(&format!("X-Cork-Workspace path not found: {raw}")),
+        Err(_) => return bad_request(&format!("X-Corkly-Workspace path not found: {raw}")),
     };
     // `metadata` is the async sibling of `is_dir` — same reason as above.
     let is_dir = tokio::fs::metadata(&canonical)
@@ -1048,7 +1048,7 @@ pub async fn workspace_layer(mut req: Request, next: Next) -> Response<Body> {
         .map(|m| m.is_dir())
         .unwrap_or(false);
     if !is_dir {
-        return bad_request(&format!("X-Cork-Workspace is not a directory: {raw}"));
+        return bad_request(&format!("X-Corkly-Workspace is not a directory: {raw}"));
     }
 
     req.extensions_mut().insert(Workspace::new(canonical));
@@ -1082,8 +1082,8 @@ pub async fn start(settings: &McpSettings) -> Result<McpHandle, McpStartError> {
     let config = StreamableHttpServerConfig::default()
         .with_stateful_mode(true)
         .with_cancellation_token(cancel.clone());
-    let mcp_service: StreamableHttpService<CorkMcpServer, LocalSessionManager> =
-        StreamableHttpService::new(|| Ok(CorkMcpServer), Default::default(), config);
+    let mcp_service: StreamableHttpService<CorklyMcpServer, LocalSessionManager> =
+        StreamableHttpService::new(|| Ok(CorklyMcpServer), Default::default(), config);
 
     let router = axum::Router::new()
         .nest_service("/mcp", mcp_service)
@@ -1341,7 +1341,7 @@ mod tests {
         assert_eq!(entry["type"], "http");
         assert_eq!(entry["url"], "http://127.0.0.1:8569/mcp");
         assert_eq!(entry["headers"]["Authorization"], "Bearer tok123456789012");
-        assert_eq!(entry["headers"]["X-Cork-Workspace"], "/Users/alice/notes");
+        assert_eq!(entry["headers"]["X-Corkly-Workspace"], "/Users/alice/notes");
     }
 
     #[test]
@@ -1431,7 +1431,7 @@ mod tests {
         let code = &snippet_for(&snips, "Claude Code").code;
         assert!(code.starts_with("claude mcp add --transport http cork-notes http://127.0.0.1:8569/mcp"));
         assert!(code.contains("--header 'Authorization: Bearer tok123456789012'"));
-        assert!(code.contains("--header 'X-Cork-Workspace: /Users/alice/notes'"));
+        assert!(code.contains("--header 'X-Corkly-Workspace: /Users/alice/notes'"));
     }
 
     #[test]
@@ -1440,7 +1440,7 @@ mod tests {
         // one well-formed argument.
         let snips = build_setup_snippets(&[PathBuf::from("/Users/alice/o'brien")], 8569, "tok");
         let code = &snippet_for(&snips, "Claude Code").code;
-        assert!(code.contains("--header 'X-Cork-Workspace: /Users/alice/o'\\''brien'"));
+        assert!(code.contains("--header 'X-Corkly-Workspace: /Users/alice/o'\\''brien'"));
     }
 
     #[test]
@@ -1450,7 +1450,7 @@ mod tests {
         assert!(code.contains("[mcp_servers.cork-notes]"));
         assert!(code.contains("url = \"http://127.0.0.1:8569/mcp\""));
         assert!(code.contains(
-            "http_headers = { \"Authorization\" = \"Bearer tok123456789012\", \"X-Cork-Workspace\" = \"/Users/alice/notes\" }"
+            "http_headers = { \"Authorization\" = \"Bearer tok123456789012\", \"X-Corkly-Workspace\" = \"/Users/alice/notes\" }"
         ));
     }
 
@@ -1459,7 +1459,7 @@ mod tests {
         // A backslash and a double quote in the path must be TOML-escaped.
         let snips = build_setup_snippets(&[PathBuf::from("/Users/alice/a\"b\\c")], 8569, "tok");
         let code = &snippet_for(&snips, "Codex CLI").code;
-        assert!(code.contains("\"X-Cork-Workspace\" = \"/Users/alice/a\\\"b\\\\c\""));
+        assert!(code.contains("\"X-Corkly-Workspace\" = \"/Users/alice/a\\\"b\\\\c\""));
     }
 
     #[test]
@@ -1478,7 +1478,7 @@ mod tests {
         assert!(code.starts_with("opencode mcp add cork-notes --url http://127.0.0.1:8569/mcp"));
         // opencode's --header uses KEY=VALUE, not the `Key: Value` form.
         assert!(code.contains("--header 'Authorization=Bearer tok123456789012'"));
-        assert!(code.contains("--header 'X-Cork-Workspace=/Users/alice/notes'"));
+        assert!(code.contains("--header 'X-Corkly-Workspace=/Users/alice/notes'"));
     }
 
     #[test]
@@ -1631,7 +1631,7 @@ mod tests {
         // straight (without the `ListTasksOutput` wrapper) panics here. This
         // test is the first line of defense before that panic surfaces only
         // at server start.
-        let router = CorkMcpServer::tool_router();
+        let router = CorklyMcpServer::tool_router();
         // Sanity: the list_tasks tool is actually registered (vs. having
         // skipped registration silently due to some other macro misuse).
         let names: Vec<String> = router
@@ -2323,7 +2323,7 @@ mod tests {
     fn auth_layer_rejects_lowercase_bearer_scheme() {
         // Strict scheme matching: only `Bearer` (case-sensitive) per our
         // `strip_prefix("Bearer ")`. RFC 6750 allows case-insensitive
-        // schemes but Cork has no need to be lenient here — every MCP
+        // schemes but Corkly has no need to be lenient here — every MCP
         // client config we generate writes `Bearer` exactly.
         use tower::ServiceExt;
         let status = rt().block_on(async {
@@ -2382,7 +2382,7 @@ mod tests {
     fn workspace_request(header: Option<&str>) -> axum::http::Request<Body> {
         let mut b = axum::http::Request::builder().method("GET").uri("/probe");
         if let Some(h) = header {
-            b = b.header("X-Cork-Workspace", h);
+            b = b.header("X-Corkly-Workspace", h);
         }
         b.body(Body::empty()).unwrap()
     }

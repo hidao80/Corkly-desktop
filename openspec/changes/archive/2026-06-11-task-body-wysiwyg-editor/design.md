@@ -83,7 +83,7 @@ Plugins: `RichTextPlugin`, `HistoryPlugin` (undo/redo), `MarkdownShortcutPlugin`
 
 ### Decision 5: Styling via the Lexical theme object, in Tailwind
 
-The Lexical `theme` maps node types to class names; populate it with Cork's Tailwind utilities (e.g. `theme.heading.h1 = "text-xl font-semibold ..."`, `theme.list.ul = "list-disc pl-5"`, `theme.code = "font-mono ..."`) so WYSIWYG output matches the app's typography. The outer `ContentEditable` reuses the body field's existing box styling (the `cork-border` / `cork-elevated` border, padding, rounded, `min-h-[16rem] flex-1`) so the field looks unchanged. This keeps styling in Tailwind with no `tailwind.config` and avoids a bespoke CSS file where possible; any unavoidable structural rule (e.g. nested-list markers) goes in `style.css`.
+The Lexical `theme` maps node types to class names; populate it with Corkly's Tailwind utilities (e.g. `theme.heading.h1 = "text-xl font-semibold ..."`, `theme.list.ul = "list-disc pl-5"`, `theme.code = "font-mono ..."`) so WYSIWYG output matches the app's typography. The outer `ContentEditable` reuses the body field's existing box styling (the `cork-border` / `cork-elevated` border, padding, rounded, `min-h-[16rem] flex-1`) so the field looks unchanged. This keeps styling in Tailwind with no `tailwind.config` and avoids a bespoke CSS file where possible; any unavoidable structural rule (e.g. nested-list markers) goes in `style.css`.
 
 ### Decision 6: Remove the `Textarea` atom
 

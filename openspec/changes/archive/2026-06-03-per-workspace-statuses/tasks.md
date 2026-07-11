@@ -37,8 +37,8 @@
 - [ ] 7.2 作業ディレクトリ A を選び、設定パネルで statuses を `Backlog / Doing / Done` に設定する。A 直下に `.cork.json` が作成され、内容が `{"statuses":[{"label":"Backlog"},{"label":"Doing"},{"label":"Done"}]}` 形式で 2 スペースインデント整形になっていることをファインダー / `cat` で確認する
 - [ ] 7.3 作業ディレクトリ B に切り替え、statuses を `Todo / In Progress / Review / Done` に設定する。B 直下にも独立した `.cork.json` ができ、A の内容は変化していないことを確認する
 - [ ] 7.4 A と B を行き来して Board のカラム構成と設定パネルの一覧が、選んだディレクトリの `.cork.json` に追従して切り替わることを確認する
-- [ ] 7.5 Cork を起動した状態で別エディタから A の `.cork.json` を書き換え保存する。Board と設定パネルが自動で新しい構成に更新されることを確認する
+- [ ] 7.5 Corkly を起動した状態で別エディタから A の `.cork.json` を書き換え保存する。Board と設定パネルが自動で新しい構成に更新されることを確認する
 - [ ] 7.6 別エディタから A の `.cork.json` を削除する。設定パネルが `Todo / Doing / Done`（フロント側 `DEFAULT_STATUSES`）に戻ることを確認する
-- [ ] 7.7 A の `.cork.json` を JSON シンタックスエラーになるよう書き換える。Cork が空配列にフォールバックし、設定パネルが `Todo / Doing / Done` を表示すること、コンソールにバックエンドの警告が出ていることを確認する
+- [ ] 7.7 A の `.cork.json` を JSON シンタックスエラーになるよう書き換える。Corkly が空配列にフォールバックし、設定パネルが `Todo / Doing / Done` を表示すること、コンソールにバックエンドの警告が出ていることを確認する
 - [ ] 7.8 OS のアプリデータディレクトリにあるグローバル `settings.json`（macOS なら `~/Library/Application Support/<bundle>/settings.json`）を開き、`statuses` キーが書き込まれていないこと（過去に残っていた場合は読み出しに使われていないこと）を確認する
 - [ ] 7.9 frontmatter `status` を持たない `.md` ファイルを A に作成する。Board に `.cork.json` の先頭ステータス（`Backlog`）の列に表示されることを確認する

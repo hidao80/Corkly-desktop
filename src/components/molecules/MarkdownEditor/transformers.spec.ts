@@ -103,7 +103,7 @@ describe("MARKDOWN_TRANSFORMERS round-trip", () => {
     expect($readMarkdown(editor)).toBe(source);
   });
 
-  // Reported as a Cork bug: opening a task after applying inline code to a
+  // Reported as a Corkly bug: opening a task after applying inline code to a
   // whitespace-only selection shows a mangled body — the backticks end up
   // glued together with the whitespace pushed outside them. See `CODE_TEXT`'s
   // header comment in transformers.ts for the full upstream root cause.
@@ -183,7 +183,7 @@ describe("MARKDOWN_TRANSFORMERS round-trip", () => {
     });
   });
 
-  // Follow-up Cork bug report: a selection with real content but padding
+  // Follow-up Corkly bug report: a selection with real content but padding
   // spaces (e.g. "   a   ") also had its whitespace escape the backticks on
   // save. Same upstream root cause as the whitespace-only case above — see
   // `CODE_TEXT`'s header comment in transformers.ts.
@@ -312,7 +312,7 @@ describe("MARKDOWN_TRANSFORMERS round-trip", () => {
     });
   });
 
-  // Reported as a second, separate Cork bug on top of the whitespace one
+  // Reported as a second, separate Corkly bug on top of the whitespace one
   // above: selecting text that itself CONTAINS a backtick and toggling
   // inline-code on it saved the raw backtick glued directly against the
   // format tag's own backtick — a lone `` ` `` round-tripped as three
@@ -502,7 +502,7 @@ describe("MARKDOWN_TRANSFORMERS round-trip", () => {
   // Regression coverage: an earlier version of the widened-fence padding
   // strip in `CODE_TEXT.replace` stripped one edge character whenever the
   // fence was 2+ backticks wide, regardless of whether that edge character
-  // was actually Cork's own padding space. A hand-authored or
+  // was actually Corkly's own padding space. A hand-authored or
   // externally-generated file using a widened fence WITHOUT that padding
   // (perfectly valid, unpadded CommonMark) had real content silently
   // deleted on open.

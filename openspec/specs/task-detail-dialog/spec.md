@@ -172,7 +172,7 @@ The task detail dialog SHALL include a "Tags" field that displays the task's tag
 - **THEN** no new tag SHALL be added
 - **AND** the input value SHALL retain the IME-confirmed text
 
-#### Scenario: Tag chips in the editor use the Cork accent tokens
+#### Scenario: Tag chips in the editor use the Corkly accent tokens
 
 - **WHEN** a tag chip is rendered inside `TagEditor` (any dialog that hosts it)
 - **THEN** the chip SHALL be styled with `rounded-full`, `bg-cork-accent/20`, `border-cork-accent/40`, `text-cork-accent-hover`, `font-medium`, `text-xs` (the accent `variant` of `TagChip`)

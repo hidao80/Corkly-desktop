@@ -1,6 +1,6 @@
 ## Why
 
-Cork is a Kanban board for local Markdown files, but users currently cannot create new tasks from within the app — it is read-only beyond reordering and renaming. To be a productive daily-driver tool, users must be able to create tasks without leaving the app or manually writing `.md` files.
+Corkly is a Kanban board for local Markdown files, but users currently cannot create new tasks from within the app — it is read-only beyond reordering and renaming. To be a productive daily-driver tool, users must be able to create tasks without leaving the app or manually writing `.md` files.
 
 ## What Changes
 

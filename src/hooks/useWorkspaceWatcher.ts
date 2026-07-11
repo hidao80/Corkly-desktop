@@ -2,7 +2,7 @@ import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useRef } from "react";
 
 type Callbacks = {
-  onCorkConfigChange: () => void;
+  onCorklyConfigChange: () => void;
   onMdChange: () => void;
 };
 
@@ -15,12 +15,12 @@ export function useWorkspaceWatcher(dir: string | null, callbacks: Callbacks) {
     const watchPromise = watch(
       dir,
       (event) => {
-        const hasCorkConfig = event.paths.some(
+        const hasCorklyConfig = event.paths.some(
           (p: string) => p.split(/[\\/]/).pop() === ".cork.json",
         );
         const hasMdFile = event.paths.some((p: string) => p.endsWith(".md"));
-        if (hasCorkConfig) {
-          callbacksRef.current.onCorkConfigChange();
+        if (hasCorklyConfig) {
+          callbacksRef.current.onCorklyConfigChange();
         } else if (hasMdFile) {
           callbacksRef.current.onMdChange();
         }

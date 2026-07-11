@@ -4,11 +4,11 @@
 
 ### Requirement: MCP サーバはアプリ起動時に設定に従って起動する
 
-Cork プロセス起動時、`tauri_plugin_store` の `settings.json` の `mcp` キーから MCP 設定 (`enabled`, `token`) を読み込み、`enabled` が `true` のときに限り MCP サーバを起動する。サーバは `127.0.0.1:8569` (port 8569 固定) で Streamable HTTP トランスポートとして bind する。`enabled` が `false` ならサーバプロセス内タスクは生成しない。`mcp` キーが存在しない初回起動時は `enabled: false`, `token` をその場で自動生成 (CSRNG, 32 文字 base62) して `settings.json` に書き込む (他キーは変更しない)。
+Corkly プロセス起動時、`tauri_plugin_store` の `settings.json` の `mcp` キーから MCP 設定 (`enabled`, `token`) を読み込み、`enabled` が `true` のときに限り MCP サーバを起動する。サーバは `127.0.0.1:8569` (port 8569 固定) で Streamable HTTP トランスポートとして bind する。`enabled` が `false` ならサーバプロセス内タスクは生成しない。`mcp` キーが存在しない初回起動時は `enabled: false`, `token` をその場で自動生成 (CSRNG, 32 文字 base62) して `settings.json` に書き込む (他キーは変更しない)。
 
 #### Scenario: 初回起動 (mcp キー無し)
 
-- **WHEN** Cork を初めて起動する、または既存ユーザーがこのバージョンに更新して初回起動する
+- **WHEN** Corkly を初めて起動する、または既存ユーザーがこのバージョンに更新して初回起動する
 - **THEN** `settings.json` に `mcp: { enabled: false, token: <ランダムな 32 文字 base62> }` が追記される
 - **AND** `workspace_history` / `workspaces` など `settings.json` の既存キーは変更されない
 - **AND** MCP サーバは bind されない (どのポートも listen していない)
@@ -53,28 +53,28 @@ Cork プロセス起動時、`tauri_plugin_store` の `settings.json` の `mcp` 
 - **WHEN** MCP クライアントが `Authorization` ヘッダーを付けずにリクエストを送る
 - **THEN** サーバは HTTP 401 を返す
 
-### Requirement: MCP サーバは `X-Cork-Workspace` ヘッダーで workspace を特定する
+### Requirement: MCP サーバは `X-Corkly-Workspace` ヘッダーで workspace を特定する
 
-すべての MCP リクエストは `X-Cork-Workspace` ヘッダーで対象 workspace の絶対パスを必須とする。サーバはこのパスを canonicalize し、ディレクトリとして存在することのみ検証する (Cork で「開かれている」必要はない)。ヘッダーが欠落、空、または canonicalize 後に存在しないパスの場合、リクエストは 400 で拒否される。
+すべての MCP リクエストは `X-Corkly-Workspace` ヘッダーで対象 workspace の絶対パスを必須とする。サーバはこのパスを canonicalize し、ディレクトリとして存在することのみ検証する (Corkly で「開かれている」必要はない)。ヘッダーが欠落、空、または canonicalize 後に存在しないパスの場合、リクエストは 400 で拒否される。
 
 #### Scenario: 有効な workspace パス
 
-- **WHEN** MCP クライアントが `X-Cork-Workspace: /Users/alice/tasks` を送り、そのパスが実在するディレクトリである
+- **WHEN** MCP クライアントが `X-Corkly-Workspace: /Users/alice/tasks` を送り、そのパスが実在するディレクトリである
 - **THEN** リクエストはそのパスを対象 workspace として MCP ハンドラに渡される
 
 #### Scenario: 開いていない workspace パス
 
-- **WHEN** MCP クライアントが Cork の GUI で開いていないが実在する別ディレクトリのパスを `X-Cork-Workspace` で指定する
+- **WHEN** MCP クライアントが Corkly の GUI で開いていないが実在する別ディレクトリのパスを `X-Corkly-Workspace` で指定する
 - **THEN** リクエストはそのパスを対象 workspace として処理される (GUI で開いている必要はない)
 
 #### Scenario: 存在しないパス
 
-- **WHEN** `X-Cork-Workspace: /nonexistent/path` を送る
+- **WHEN** `X-Corkly-Workspace: /nonexistent/path` を送る
 - **THEN** サーバは HTTP 400 を返し、エラーメッセージで存在しない workspace パスであることを示す
 
 #### Scenario: ヘッダー欠落
 
-- **WHEN** クライアントが `X-Cork-Workspace` ヘッダーを送らない
+- **WHEN** クライアントが `X-Corkly-Workspace` ヘッダーを送らない
 - **THEN** サーバは HTTP 400 を返し、ヘッダー必須である旨を伝える
 
 ### Requirement: MCP サーバは `list_tasks` ツールを公開する
@@ -111,7 +111,7 @@ MCP 設定 (`enabled`, `token`) は `tauri_plugin_store` の既存ストア `set
 
 #### Scenario: 複数 window でも設定は共通
 
-- **WHEN** Cork が複数 window を開いている状態でいずれかの window の Settings から `token` を変更する
+- **WHEN** Corkly が複数 window を開いている状態でいずれかの window の Settings から `token` を変更する
 - **THEN** 変更は全 window に共通の MCP サーバインスタンスに反映される (window ごとに別 token で認証されることはない)
 
 ### Requirement: Frontend は MCP 設定を `SettingsDialog` 内の「MCP Server」セクションで操作できる
@@ -181,8 +181,8 @@ MCP 設定 (`enabled`, `token`) は `tauri_plugin_store` の既存ストア `set
 #### Scenario: mcp.json スニペットの自動生成
 
 - **WHEN** Toggle が ON の状態で `SettingsDialog` を開く
-- **THEN** 現在 Cork のいずれかの window で開かれている全 workspace に対応するエントリを含む `mcp.json` スニペットが表示される
-- **AND** 各エントリは `url: "http://127.0.0.1:8569/mcp"`, `headers.Authorization: "Bearer {token}"`, `headers.X-Cork-Workspace: {workspace path}` を含む
+- **THEN** 現在 Corkly のいずれかの window で開かれている全 workspace に対応するエントリを含む `mcp.json` スニペットが表示される
+- **AND** 各エントリは `url: "http://127.0.0.1:8569/mcp"`, `headers.Authorization: "Bearer {token}"`, `headers.X-Corkly-Workspace: {workspace path}` を含む
 
 #### Scenario: workspace 未オープン時のプレースホルダ
 
@@ -218,11 +218,11 @@ MCP 設定 (`enabled`, `token`) は `tauri_plugin_store` の既存ストア `set
 
 ### Requirement: アプリ終了時にサーバは graceful に停止する
 
-Cork が `RunEvent::Exit` を受け取った時点で、稼働中の MCP サーバは cancellation token を発火させて停止する。進行中のリクエストは可能な限り完了させる。
+Corkly が `RunEvent::Exit` を受け取った時点で、稼働中の MCP サーバは cancellation token を発火させて停止する。進行中のリクエストは可能な限り完了させる。
 
 #### Scenario: 正常終了
 
-- **WHEN** ユーザーが `Cmd+Q` で Cork を終了する
+- **WHEN** ユーザーが `Cmd+Q` で Corkly を終了する
 - **THEN** MCP サーバは cancellation token を受けて新規接続の受付を止める
 - **AND** 進行中のリクエストは完了するか 1 秒のタイムアウトで打ち切られる
 - **AND** プロセス終了までに bind ポートが解放される
@@ -233,5 +233,5 @@ Cork が `RunEvent::Exit` を受け取った時点で、稼働中の MCP サー�
 
 #### Scenario: localhost 以外への接続試行
 
-- **WHEN** 外部ネットワーク上のホストから `<Cork が動いているマシンの LAN IP>:8569` に接続を試みる
+- **WHEN** 外部ネットワーク上のホストから `<Corkly が動いているマシンの LAN IP>:8569` に接続を試みる
 - **THEN** TCP レベルで接続が拒否される (bind されていないため)

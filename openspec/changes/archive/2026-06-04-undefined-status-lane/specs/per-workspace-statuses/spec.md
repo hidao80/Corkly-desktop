@@ -4,7 +4,7 @@
 
 ### Requirement: frontmatter に `status` を持たない `.md` ファイルは `list_tasks` に含めない
 
-frontmatter に `status` キーを持たない `.md` ファイルは Cork の管理対象外とみなし、`list_tasks` の結果に含めてはならない (MUST NOT)。従来の「`.cork.json` の先頭ステータスをデフォルトとして割り当てる」挙動は廃止される。
+frontmatter に `status` キーを持たない `.md` ファイルは Corkly の管理対象外とみなし、`list_tasks` の結果に含めてはならない (MUST NOT)。従来の「`.cork.json` の先頭ステータスをデフォルトとして割り当てる」挙動は廃止される。
 
 frontmatter に `status` キーが存在するが、その値が `.cork.json` に定義されたいずれのステータスラベルとも一致しない場合は、タスクはその値を持ったまま `list_tasks` の結果に含めなければならず (MUST)、board 上では Unknown レーン（別途定義）に表示される。
 

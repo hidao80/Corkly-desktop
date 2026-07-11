@@ -13,7 +13,7 @@ const CORK_CONFIG_FILE: &str = ".cork.json";
 /// call `write_cork_config_key` at nearly the same time; without this lock
 /// each would read the same starting file, mutate only its own key in
 /// memory, and whichever wrote last would silently discard the other's
-/// change. This only covers same-process races — Cork's single-instance
+/// change. This only covers same-process races — Corkly's single-instance
 /// plugin means every window for a given launch lives in one process, so
 /// that's the only case that can actually occur.
 static WRITE_LOCK: Mutex<()> = Mutex::new(());

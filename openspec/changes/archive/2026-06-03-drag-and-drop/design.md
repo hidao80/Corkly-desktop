@@ -1,6 +1,6 @@
 ## Context
 
-The Cork kanban board has a 3+ column layout (dynamic statuses) where each column shows tasks filtered by status. Currently, users change a task's status by clicking "Move to {status}" buttons on each card. The backend (`update_task_status` in Rust) already handles the status update by rewriting the YAML frontmatter of the `.md` file on disk.
+The Corkly kanban board has a 3+ column layout (dynamic statuses) where each column shows tasks filtered by status. Currently, users change a task's status by clicking "Move to {status}" buttons on each card. The backend (`update_task_status` in Rust) already handles the status update by rewriting the YAML frontmatter of the `.md` file on disk.
 
 The frontend uses React 19 with hooks (`useWorkspace`) and passes data down as props: `Board → Column → Card`. There is no state management library (no Redux, Zustand, etc.).
 

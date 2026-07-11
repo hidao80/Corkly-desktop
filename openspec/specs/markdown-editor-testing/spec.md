@@ -54,24 +54,24 @@ The `$`-prefixed helpers defined inside `src/components/molecules/MarkdownEditor
 
 #### Scenario: A pure helper can be tested without rendering
 
-- **WHEN** a test creates a headless editor with Cork's registered nodes
+- **WHEN** a test creates a headless editor with Corkly's registered nodes
 - **AND** builds a small node tree inside `editor.update(...)` (e.g. an empty `ParagraphNode` under root)
 - **AND** invokes `$isInsideCodeBlock(paragraph)` against that tree
 - **THEN** the helper SHALL return `false`
 
 ### Requirement: Markdown round-trip SHALL be testable in a headless Lexical editor
 
-The `MARKDOWN_TRANSFORMERS` array exported from `src/components/molecules/MarkdownEditor/transformers.ts` SHALL produce identical Markdown when an input string is imported via `$convertFromMarkdownString` and then exported via `$convertToMarkdownString` inside a headless editor — for any input string that is already canonically normalized in Cork's chosen Markdown dialect.
+The `MARKDOWN_TRANSFORMERS` array exported from `src/components/molecules/MarkdownEditor/transformers.ts` SHALL produce identical Markdown when an input string is imported via `$convertFromMarkdownString` and then exported via `$convertToMarkdownString` inside a headless editor — for any input string that is already canonically normalized in Corkly's chosen Markdown dialect.
 
 #### Scenario: A heading round-trips through the transformer set
 
-- **WHEN** a test imports `# Hello` into a headless editor with Cork's `MARKDOWN_TRANSFORMERS`
+- **WHEN** a test imports `# Hello` into a headless editor with Corkly's `MARKDOWN_TRANSFORMERS`
 - **AND** exports the resulting editor state back to Markdown
 - **THEN** the exported string SHALL equal `# Hello`
 
 #### Scenario: A nested blockquote round-trips at depth 2
 
-- **WHEN** a test imports `> > Hello` into a headless editor with Cork's `MARKDOWN_TRANSFORMERS`
+- **WHEN** a test imports `> > Hello` into a headless editor with Corkly's `MARKDOWN_TRANSFORMERS`
 - **AND** exports the resulting editor state back to Markdown
 - **THEN** the exported string SHALL equal `> > Hello`
 - **AND** the intermediate editor state SHALL contain a depth-2 nested `QuoteNode` tree (`QuoteNode → QuoteNode → ParagraphNode → TextNode("Hello")`)
@@ -92,7 +92,7 @@ Every custom plugin in `src/components/molecules/MarkdownEditor/` whose behavior
 
 The directory `src/components/molecules/MarkdownEditor/__tests__/` SHALL contain a `utils.tsx` module that exports a minimal set of helpers covering the three testable surface shapes the initial slice locks in (pure helper, transformer round-trip, plugin keyboard contract) — and SHALL be structured so the fourth shape (plugin live-typing transforms driven by `registerUpdateListener`) can be exercised with the same helpers when a follow-up change adds its template. The module SHALL be the single source of truth for "how do I write a MarkdownEditor test" so individual test files do not re-derive setup boilerplate.
 
-#### Scenario: `createTestHeadlessEditor()` returns a headless editor with all Cork nodes registered
+#### Scenario: `createTestHeadlessEditor()` returns a headless editor with all Corkly nodes registered
 
 - **WHEN** a test calls `createTestHeadlessEditor()`
 - **THEN** the returned editor SHALL be a `LexicalEditor` instance

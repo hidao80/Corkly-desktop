@@ -7,20 +7,20 @@ WelcomePage は、マウント時に `listWorkspaceHistory()` を呼び、戻り
 #### Scenario: 履歴が空のときヒーローのみ表示
 
 - **GIVEN** `workspace_history` に項目が一切ない初回ユーザー
-- **WHEN** Cork が WelcomePage を表示する
-- **THEN** ロゴ・タイトル `Cork`・`Select Workspace Directory` ボタンのみが中央に表示される
+- **WHEN** Corkly が WelcomePage を表示する
+- **THEN** ロゴ・タイトル `Corkly`・`Select Workspace Directory` ボタンのみが中央に表示される
 - **AND** `Recent Workspaces` というセクションは出現しない
 
 #### Scenario: 履歴がある場合はヒーロー + Recent Workspaces を表示
 
 - **GIVEN** `workspace_history` に実在するパスが `/path/to/A`, `/path/to/B` の 2 件ある
-- **WHEN** Cork が WelcomePage を表示する
+- **WHEN** Corkly が WelcomePage を表示する
 - **THEN** ヒーロー (ロゴ + CTA) の下に `Recent Workspaces` ラベルが表示される
 - **AND** その下に `/path/to/A`, `/path/to/B` の順でリスト項目が表示される
 
 #### Scenario: 履歴ロード中はリストを描画しない
 
-- **GIVEN** Cork が WelcomePage を初めて描画している瞬間、`listWorkspaceHistory()` の結果がまだ返っていない
+- **GIVEN** Corkly が WelcomePage を初めて描画している瞬間、`listWorkspaceHistory()` の結果がまだ返っていない
 - **WHEN** ユーザーが画面を見ている
 - **THEN** ヒーローは即座に表示される
 - **AND** `Recent Workspaces` セクションは結果が返るまで描画されない (チラつきを避けるため空配列扱いと同じ)
@@ -39,7 +39,7 @@ WelcomePage は、マウント時に `listWorkspaceHistory()` を呼び、戻り
 #### Scenario: 永続データは無効パスを含んだまま保持される
 
 - **GIVEN** 上記の状況の直後
-- **WHEN** Cork を一度終了して再起動する
+- **WHEN** Corkly を一度終了して再起動する
 - **THEN** 起動時の `parse_workspace_history` は永続データから `/path/to/missing` を含む完全な配列を取得する
 - **AND** 起動時の `setup()` シードは `/path/to/A` を選ぶ (`is_dir()` を通る最初のパス)
 - **AND** `settings.json` の `workspace_history` キーには `/path/to/missing` が依然含まれている (一時的にアンマウントされていた可能性に備えて消さない)

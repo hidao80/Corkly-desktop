@@ -129,7 +129,7 @@ describe("QUOTE_CODE transformer", () => {
     });
   });
 
-  // Fence-width preservation (Cork's own CODE override) must keep working
+  // Fence-width preservation (Corkly's own CODE override) must keep working
   // for a quoted fence too — a 4-backtick fence is how a quoted code block
   // embeds literal triple-backtick content.
   test("a widened fence inside a quote survives round-trip", () => {

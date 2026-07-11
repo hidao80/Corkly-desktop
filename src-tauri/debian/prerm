@@ -1,0 +1,14 @@
+#!/bin/sh
+# Corkly Debian pre-remove: drop the /usr/bin/cork symlink installed by postinst.
+#
+# Only remove the symlink if it still points at our cork; anything else
+# is user-authored and none of our business.
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ] || [ "$1" = "upgrade" ] || [ "$1" = "deconfigure" ]; then
+    if [ -L /usr/bin/cork ] && [ "$(readlink /usr/bin/cork)" = "/usr/bin/cork" ]; then
+        rm -f /usr/bin/cork
+    fi
+fi
+
+exit 0

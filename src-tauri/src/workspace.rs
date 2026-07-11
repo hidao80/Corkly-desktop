@@ -126,7 +126,7 @@ fn filter_existing_directories(history: &[String]) -> Vec<String> {
 
 /// Seed a window's workspace from the persisted history. Shared by
 /// `lib.rs::setup` (called once at process start to restore `main`) and the
-/// macOS Dock-reopen handler (called when the user re-activates Cork after
+/// macOS Dock-reopen handler (called when the user re-activates Corkly after
 /// closing every window).
 ///
 /// **Order matters at call sites**: the AppState write must complete *before*
@@ -165,6 +165,7 @@ pub fn seed_window_from_history(app: &tauri::AppHandle, label: &str) {
 /// and to every subsequent `workspace-<n>` window opened via the menu or the
 /// Reopen handler. Pulled out so the two call sites can't drift apart
 /// visually.
+#[cfg(target_os = "macos")]
 fn apply_macos_window_chrome(window: &WebviewWindow) {
     use objc2_app_kit::{NSColor, NSWindow};
 
@@ -196,16 +197,20 @@ fn apply_macos_window_chrome(window: &WebviewWindow) {
 /// top-left corner. Must mirror the literal passed to `traffic_light_position`
 /// in `build_workspace_window` — Tauri/tao set the initial position; we
 /// restore the same offset on every subsequent relayout.
+#[cfg(target_os = "macos")]
 const TRAFFIC_LIGHT_X: f64 = 20.0;
+#[cfg(target_os = "macos")]
 const TRAFFIC_LIGHT_Y: f64 = 28.0;
 /// macOS traffic-light spacing. Hard-coded — the live `miniaturize.x - close.x`
 /// delta is unreliable once close has been moved to our offset (the next
 /// reapply would read a clustered delta and snap the other two buttons in).
+#[cfg(target_os = "macos")]
 const TRAFFIC_LIGHT_SPACING: f64 = 20.0;
 /// Nominal traffic-light button height. Used to size the private titlebar
 /// container view in `reapply_traffic_light_position`. Reading the live
 /// `close.frame().size.height` returns 0 while AppKit is mid-transition
 /// (notably during recording start), collapsing the container.
+#[cfg(target_os = "macos")]
 const TRAFFIC_LIGHT_BUTTON_HEIGHT: f64 = 15.0;
 
 /// NSWindow pointers we've installed our notification observer for. The
@@ -213,9 +218,11 @@ const TRAFFIC_LIGHT_BUTTON_HEIGHT: f64 = 15.0;
 /// notification filter is by raw NSWindow address, and macOS happily reuses a
 /// freed NSWindow's address for unrelated windows (e.g. `rfd`'s open panel).
 /// Without this check the stale observer would mangle their titlebars.
+#[cfg(target_os = "macos")]
 static OBSERVED_WINDOWS: std::sync::OnceLock<std::sync::Mutex<std::collections::HashSet<usize>>> =
     std::sync::OnceLock::new();
 
+#[cfg(target_os = "macos")]
 fn observed_windows() -> &'static std::sync::Mutex<std::collections::HashSet<usize>> {
     OBSERVED_WINDOWS.get_or_init(|| std::sync::Mutex::new(std::collections::HashSet::new()))
 }
@@ -224,6 +231,7 @@ fn observed_windows() -> &'static std::sync::Mutex<std::collections::HashSet<usi
 /// observer no longer reacts if the NSWindow's address gets recycled. Called
 /// from `lib.rs::on_window_event` on `WindowEvent::Destroyed`. Best-effort:
 /// `ns_window()` failing means there's nothing to deregister.
+#[cfg(target_os = "macos")]
 pub(crate) fn deregister_traffic_light_window<R: tauri::Runtime>(window: &tauri::Window<R>) {
     let Ok(ptr) = window.ns_window() else { return };
     observed_windows().lock().unwrap().remove(&(ptr as usize));
@@ -232,6 +240,7 @@ pub(crate) fn deregister_traffic_light_window<R: tauri::Runtime>(window: &tauri:
 /// Subscribe to `NSWindowDidUpdateNotification` and re-apply the traffic-light
 /// offset whenever any of the three standard buttons drifts. Post-layout, so
 /// the steady-state path is a single guard check; AppKit isn't fought.
+#[cfg(target_os = "macos")]
 unsafe fn install_traffic_light_repositioner(ns_window: &objc2_app_kit::NSWindow) {
     use block2::RcBlock;
     use objc2::runtime::AnyObject;
@@ -287,6 +296,7 @@ unsafe fn install_traffic_light_repositioner(ns_window: &objc2_app_kit::NSWindow
 /// SAFETY: Caller must pass a live `NSWindow` with a titlebar style.
 /// Missing buttons (`Closable` / `Miniaturizable` stripped from the style
 /// mask) are treated as "no work to do" — no reapply attempt is made.
+#[cfg(target_os = "macos")]
 unsafe fn reapply_traffic_lights_if_needed(ns_window: &objc2_app_kit::NSWindow) {
     use objc2_app_kit::NSWindowButton;
     use objc2_foundation::NSPoint;
@@ -338,9 +348,12 @@ pub(crate) fn build_workspace_window(
     label: &str,
 ) -> tauri::Result<WebviewWindow> {
     let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::default())
-        .title("")
+        .title("Corkly")
         .inner_size(1280.0, 800.0);
 
+    // Overlay title-bar + traffic-light positioning are macOS-only Tauri APIs.
+    // On Windows / Linux the platform's native window chrome renders instead.
+    #[cfg(target_os = "macos")]
     let builder = builder
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .traffic_light_position(tauri::LogicalPosition::new(
@@ -350,6 +363,7 @@ pub(crate) fn build_workspace_window(
 
     let window = builder.build()?;
 
+    #[cfg(target_os = "macos")]
     apply_macos_window_chrome(&window);
 
     Ok(window)
@@ -393,9 +407,9 @@ fn build_seeded_window(
     }
 }
 
-fn reopen_with_history_restore(app: &tauri::AppHandle) -> tauri::Result<WebviewWindow> {
-    build_seeded_window(app, seed_window_from_history)
-}
+// fn reopen_with_history_restore(app: &tauri::AppHandle) -> tauri::Result<WebviewWindow> {
+//     build_seeded_window(app, seed_window_from_history)
+// }
 
 /// macOS Dock-icon reactivation path. Called from the `RunEvent::Reopen`
 /// handler in `lib.rs::run` whenever AppKit's
@@ -413,12 +427,13 @@ fn reopen_with_history_restore(app: &tauri::AppHandle) -> tauri::Result<WebviewW
 ///   one on top — instead un-minimise, un-hide, and refocus each existing
 ///   window. Creating another window in this branch would be the headline
 ///   bug this whole helper exists to avoid.
+#[cfg(target_os = "macos")]
 pub(crate) fn handle_macos_reopen(app: &tauri::AppHandle) {
     let windows = app.webview_windows();
     if windows.is_empty() {
-        if let Err(e) = reopen_with_history_restore(app) {
-            eprintln!("failed to open a window in response to Dock reopen: {e}");
-        }
+        // if let Err(e) = reopen_with_history_restore(app) {
+        //     eprintln!("failed to open a window in response to Dock reopen: {e}");
+        // }
         return;
     }
     for (_, window) in windows {
@@ -429,7 +444,7 @@ pub(crate) fn handle_macos_reopen(app: &tauri::AppHandle) {
 /// Bring a window to the foreground. The order is load-bearing: un-minimise and
 /// show *before* focusing, because tao's `set_focus` (which also activates the
 /// app via `activateIgnoringOtherApps:`) is a no-op on a minimised or hidden
-/// window — so raising Cork from the background would otherwise silently fail.
+/// window — so raising Corkly from the background would otherwise silently fail.
 /// Shared by the Dock-reopen path and the `cork` CLI handler.
 fn raise_window(window: &WebviewWindow) {
     let _ = window.unminimize();
@@ -458,7 +473,7 @@ pub(crate) fn workspace_arg_from_argv(argv: &[String]) -> Option<PathBuf> {
 /// `tauri-plugin-single-instance`. No path → open a fresh welcome window (the
 /// `File > New Window` behaviour). A path → focus the window already hosting
 /// that workspace, or open a new window seeded with it. Either way the
-/// resulting window is raised so Cork comes to the foreground in front of the
+/// resulting window is raised so Corkly comes to the foreground in front of the
 /// terminal the command was typed into.
 ///
 /// **Must run on the main thread.** The single-instance callback fires on a

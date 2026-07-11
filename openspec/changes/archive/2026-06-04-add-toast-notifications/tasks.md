@@ -4,7 +4,7 @@
 
 ## 2. Toaster outlet
 
-- [x] 2.1 Add `<Toaster />` to `App.tsx` with dark theme and Cork-compatible styling
+- [x] 2.1 Add `<Toaster />` to `App.tsx` with dark theme and Corkly-compatible styling
 - [x] 2.2 Configure toast options: `position="bottom-right"`, `duration=4000` (default), errors `duration=Infinity`
 - [ ] 2.3 Verify Toaster renders on both WelcomePage and BoardPage (manual — `bun run tauri dev`)
 

@@ -1,6 +1,6 @@
 ## Why
 
-Cork のタスクはすでに frontmatter の `tags: [string, ...]` で多軸の分類を持てるが、ボード上でタグを使って一覧を絞り込む手段が無い。タイトル検索 (`search-tasks`) はあるが、これは「bug かつ p0」「frontend を除く」のような属性ベースの絞り込みを表現できない。タスクが増えるほどタグの価値は「貼れる」ことより「絞れる」ことに移るため、`task-tags` を実用的に機能させるにはフィルタ機能が前提となる。
+Corkly のタスクはすでに frontmatter の `tags: [string, ...]` で多軸の分類を持てるが、ボード上でタグを使って一覧を絞り込む手段が無い。タイトル検索 (`search-tasks`) はあるが、これは「bug かつ p0」「frontend を除く」のような属性ベースの絞り込みを表現できない。タスクが増えるほどタグの価値は「貼れる」ことより「絞れる」ことに移るため、`task-tags` を実用的に機能させるにはフィルタ機能が前提となる。
 
 スコープを軽く保つため、AND の平坦な組み合わせのみ・タグフィールドのみを対象とする (`status` / `title` などのフィルタ化は別 change で扱える土台だけ残す)。
 
@@ -10,7 +10,7 @@ Cork のタスクはすでに frontmatter の `tags: [string, ...]` で多軸の
 - Rust バックエンド: 既存のタスクキャッシュ (`AppState::tasks_cache`) に対して in-memory でフィルタを評価する (ファイル I/O ゼロ)。
 - フロントエンド API: `src/api/tasks.ts` の `listTasks()` シグネチャを `(query?, filters?) => Promise<Task[]>` に拡張する。
 - フロントエンド hook: `useWorkspace` に `filters: TagFilter[]` ステートと `handleFiltersChange` ハンドラを追加し、`query` と同様に変更即時 `listTasks` を呼ぶ。
-- 永続化: 既存の Cork 流儀 (`workspace.rs` の `get/set_workspace_directory` パターン) に倣い、**Rust 側の Tauri command が `tauri-plugin-store` をラップ**する。新規コマンド `get_workspace_filters(workspace_dir)` / `set_workspace_filters(workspace_dir, filters)` を追加し、frontend は invoke 経由でアクセスする。保存先は既存の `settings.json` 内の `filters` キー配下に `{ [workspaceDir]: StoredFilter[] }` の形で書く (workspace_dir と同居)。`.cork.json` には書かない (個人設定の位置付け)。
+- 永続化: 既存の Corkly 流儀 (`workspace.rs` の `get/set_workspace_directory` パターン) に倣い、**Rust 側の Tauri command が `tauri-plugin-store` をラップ**する。新規コマンド `get_workspace_filters(workspace_dir)` / `set_workspace_filters(workspace_dir, filters)` を追加し、frontend は invoke 経由でアクセスする。保存先は既存の `settings.json` 内の `filters` キー配下に `{ [workspaceDir]: StoredFilter[] }` の形で書く (workspace_dir と同居)。`.cork.json` には書かない (個人設定の位置付け)。
 - UI: 既存のツールバー (`SearchBar` のある行) に `FilterButton` を追加し、クリックでフィルタ popover を開く。popover は Filter 一覧 + Add filter + Clear all を提供する。
 - UI: フィルタ適用中で結果 0 件のとき、ボードの代わりに empty state を表示し、ユーザに「Clear all」「Edit filters」を提示する。
 - 操作: SearchBar 既存の `Cmd/Ctrl+F` に加えて、`Cmd/Ctrl+Shift+F` で Filter popover を開くショートカットを追加する。

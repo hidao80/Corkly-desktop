@@ -1,17 +1,17 @@
 ## Why
 
-現状 Cork のバージョン更新はユーザー任せ — DMG を再ダウンロードして手で差し替えるか、Homebrew Cask 利用者なら `brew upgrade --cask cork` を明示実行するかの二択しか提供できていない。アプリ起動中に新バージョンの存在を知る手段が一切なく、リリース告知 → 更新までの導線が極端に長い。配布手段は二系統あるが Apple Developer Program に加入しない方針のため、Sparkle や Apple 公式 Updater のような Developer ID 前提の解決策は採れず、「ad-hoc 署名のままで成立する自走更新」を独自に設計する必要がある。
+現状 Corkly のバージョン更新はユーザー任せ — DMG を再ダウンロードして手で差し替えるか、Homebrew Cask 利用者なら `brew upgrade --cask cork` を明示実行するかの二択しか提供できていない。アプリ起動中に新バージョンの存在を知る手段が一切なく、リリース告知 → 更新までの導線が極端に長い。配布手段は二系統あるが Apple Developer Program に加入しない方針のため、Sparkle や Apple 公式 Updater のような Developer ID 前提の解決策は採れず、「ad-hoc 署名のままで成立する自走更新」を独自に設計する必要がある。
 
 ## What Changes
 
 - **Tauri v2 公式 `tauri-plugin-updater` を採用**して、アプリ起動時の自動チェック・手動チェック・ダウンロード・インストール・再起動の一連の自走更新フローを提供する
 - **minisign による独立署名 + ビルド時 ad-hoc codesign の二段構え**を導入。Apple Developer ID を取得せずに、アップデート tar.gz の真正性検証（minisign）と macOS 起動要件（ad-hoc codesign）の双方を満たす
 - **GitHub Releases に静的 `latest.json` を配置**し、`tauri-plugin-updater` の endpoint として使う。`latest.json` の生成と署名は CI が担う
-- **`Cork > Check for Updates...` メニュー項目**を追加する
+- **`Corkly > Check for Updates...` メニュー項目**を追加する
 - **更新通知は sonner toast**として右下に表示する（中央 modal ではなく、ユーザー作業を妨げないスタイル）。state machine を sonner の同 id update セマンティクスにブリッジし、`available → downloading → installing → (success or error)` を **同じ toast カード内で in-place 遷移**させる。自動クローズ無し、× で手動クローズ
 - **`Update available` toast には `Install and Restart` action ボタン + `Release notes ↗` リンク + 閉じる X**。リリースノート本文は UI には表示せず、リンクから GitHub Release ページを開く
 - **Homebrew Cask に `auto_updates true` を追加**。`scripts/build-cask.ts` を更新し、`brew upgrade --cask cork`（名前指定）は従来通り、bare `brew upgrade` は Brew 側の bundle-version 比較で二重更新を避ける挙動に揃える
-- **CI（`.github/workflows/release-please.yml`）の `build`/`release` ジョブを拡張**。`TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` を Secret として読み込み、`Cork.app.tar.gz` + `Cork.app.tar.gz.sig` を upload、`scripts/build-update-manifest.ts`（新規）が `latest.json` を生成して release にアップロード
+- **CI（`.github/workflows/release-please.yml`）の `build`/`release` ジョブを拡張**。`TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` を Secret として読み込み、`Corkly.app.tar.gz` + `Corkly.app.tar.gz.sig` を upload、`scripts/build-update-manifest.ts`（新規）が `latest.json` を生成して release にアップロード
 - **`tauri.conf.json` に `bundle.macOS.signingIdentity: "-"` と `bundle.createUpdaterArtifacts: true` と `plugins.updater.{endpoints, pubkey}` を追加**
 - **`capabilities/default.json` に `updater:default` と `process:default` を追加**（updater の check/install と Tauri runtime restart のため）
 

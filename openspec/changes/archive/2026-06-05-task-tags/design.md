@@ -1,6 +1,6 @@
 ## Context
 
-Cork のタスクモデルは現状 `title` / `status` / `body` / `order` の 4 軸のみ。ステータスはカラム分割という「主軸」を担うため 1 タスク 1 ステータスだが、利用者は副次的に「種別」「優先度」「領域」などの多軸ラベルでタスクを束ねたいシーンが多い。Markdown ファイルでの可搬性を保ったまま、Obsidian / Notion / GitHub Issues などとも親和性が高い `tags: [string]` を frontmatter に導入する。
+Corkly のタスクモデルは現状 `title` / `status` / `body` / `order` の 4 軸のみ。ステータスはカラム分割という「主軸」を担うため 1 タスク 1 ステータスだが、利用者は副次的に「種別」「優先度」「領域」などの多軸ラベルでタスクを束ねたいシーンが多い。Markdown ファイルでの可搬性を保ったまま、Obsidian / Notion / GitHub Issues などとも親和性が高い `tags: [string]` を frontmatter に導入する。
 
 現状の関連実装:
 
@@ -46,7 +46,7 @@ Cork のタスクモデルは現状 `title` / `status` / `body` / `order` の 4 
 
 ### frontmatter での `tags: []` (空配列) はキーごと出力しない
 
-タグが空の場合に `tags: []` を YAML に書き出すと、新規タスク / タグを 1 度も使ったことが無いタスクすべてに 1 行ノイズが入る。Cork は frontmatter の最小性を重視しているため、`update_task` 内で「空配列はキー除去」をハンドリングする。
+タグが空の場合に `tags: []` を YAML に書き出すと、新規タスク / タグを 1 度も使ったことが無いタスクすべてに 1 行ノイズが入る。Corkly は frontmatter の最小性を重視しているため、`update_task` 内で「空配列はキー除去」をハンドリングする。
 
 | アプローチ             | 判断                                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------------------- |
@@ -127,7 +127,7 @@ Cork のタスクモデルは現状 `title` / `status` / `body` / `order` の 4 
 
 両方とも視覚スタイルは同じチップを使うため、内部の `Chip` を `TagList` 内のローカルコンポーネントとして共有、または `atoms/TagChip` を最小 atom として 1 枚切り出してもよい。**実装時に `atoms/TagChip` を追加する** — 「表示 1 個分のチップ」は単一責務として小さく、他の場所 (将来のフィルタバーなど) でも再利用可能。
 
-### スタイル決定 (Cork デザイントークン準拠)
+### スタイル決定 (Corkly デザイントークン準拠)
 
 - チップ容器: `inline-flex items-center gap-1 h-5 px-2 rounded-full text-xs`
 - 背景/枠線: `bg-cork-elevated/60 border border-cork-border/40`
