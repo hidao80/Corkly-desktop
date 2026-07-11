@@ -23,7 +23,7 @@ jobs:
       - uses: ./.github/actions/setup
       - run: bun run fmt:check
       - run: bun run lint
-      - uses: actions/cache@v7
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('bun.lock') }}
