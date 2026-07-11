@@ -10,9 +10,9 @@
 </p>
 
 <p align='center'>
-<a href="https://github.com/koki-develop/Corkly/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/koki-develop/Corkly?style=flat"></a>
-<a href="./LICENSE"><img src="https://img.shields.io/github/license/koki-develop/Corkly?style=flat" /></a>
-<a href="https://github.com/koki-develop/Corkly/actions/workflows/ci.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/koki-develop/Corkly/ci.yml?branch=main&logo=github&style=flat" /></a>
+<a href="https://github.com/hidao80/Corkly/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/hidao80/Corkly?style=flat"></a>
+<a href="./LICENSE"><img src="https://img.shields.io/github/license/hidao80/Corkly?style=flat" /></a>
+<a href="https://github.com/hidao80/Corkly/actions/workflows/ci.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/hidao80/Corkly/ci.yml?branch=main&logo=github&style=flat" /></a>
 <img alt="macOS" src="https://img.shields.io/badge/platform-macOS-blue?style=flat" />
 <img alt="Windows" src="https://img.shields.io/badge/platform-Windows-blue?style=flat" />
 <img alt="Linux" src="https://img.shields.io/badge/platform-Linux-blue?style=flat" />
@@ -29,19 +29,19 @@
 ### macOS (Homebrew)
 
 ```
-brew install --cask koki-develop/tap/cork
+brew install --cask hidao80/tap/cork
 ```
 
 To update:
 
 ```
 brew update
-brew upgrade koki-develop/tap/cork
+brew upgrade hidao80/tap/cork
 ```
 
 ### Windows
 
-Download the latest `Corkly_<version>_x64-setup.exe` from the [Releases page](https://github.com/koki-develop/Corkly/releases/latest) and run it. The installer is a per-user install (no admin rights required) and adds `cork` to your `PATH`.
+Download the latest `Corkly_<version>_x64-setup.exe` from the [Releases page](https://github.com/hidao80/Corkly/releases/latest) and run it. The installer is a per-user install (no admin rights required) and adds `cork` to your `PATH`.
 
 > **Note on SmartScreen warning:** The Windows installer is **not code-signed**, so on first launch Windows Defender SmartScreen will display _"Windows protected your PC"_. Click **More info** → **Run anyway** to proceed. This is expected — Corkly does not carry an Authenticode signature.
 
@@ -49,7 +49,7 @@ Download the latest `Corkly_<version>_x64-setup.exe` from the [Releases page](ht
 
 ### Linux
 
-Download either `Corkly_<version>_amd64.deb` (Debian / Ubuntu) or `Corkly_<version>_amd64.AppImage` (any distro) from the [Releases page](https://github.com/koki-develop/Corkly/releases/latest).
+Download either `Corkly_<version>_amd64.deb` (Debian / Ubuntu) or `Corkly_<version>_amd64.AppImage` (any distro) from the [Releases page](https://github.com/hidao80/Corkly/releases/latest).
 
 ```sh
 # Debian / Ubuntu
